@@ -33,7 +33,12 @@ const AddItemToBagName = "ADD_TO_BAG"
 const RemoveItemFromBagPath = "/trainers/{username}/bag/{itemId}"
 const RemoveItemFromBagName = "REMOVE_FROM_BAG"
 
+// token
+
+const VerifyTokenName = "/token"
+
 var routes = utils.Routes{
+	// TRAINERS
 
 	utils.Route{
 		Name:        AddTrainerName,
@@ -56,6 +61,8 @@ var routes = utils.Routes{
 		HandlerFunc: GetTrainerByUsername,
 	},
 
+	// POKEMONS
+
 	utils.Route{
 		Name:        AddPokemonName,
 		Method:      POST,
@@ -70,17 +77,28 @@ var routes = utils.Routes{
 		HandlerFunc: RemovePokemonFromTrainer,
 	},
 
+	// ITEMS
+
 	utils.Route{
 		Name:        AddItemToBagName,
 		Method:      POST,
 		Pattern:     AddItemToBagPath,
-		HandlerFunc: AddItemToTrainer,
+		HandlerFunc: AddItemsToTrainer,
 	},
 
 	utils.Route{
 		Name:        RemoveItemFromBagName,
 		Method:      DELETE,
 		Pattern:     RemoveItemFromBagPath,
-		HandlerFunc: RemoveItemToTrainer,
+		HandlerFunc: RemoveItemsFromTrainer,
+	},
+
+	// TOKEN
+
+	utils.Route{
+		Name:        VerifyTokenName,
+		Method:      GET,
+		Pattern:     VerifyTokenPath,
+		HandlerFunc: HandleVerifyTrainerToken,
 	},
 }
