@@ -19,6 +19,9 @@ const GetTrainersName = "GET_TRAINERS"
 const GetTrainerByUsernamePath = "/trainers/{username}"
 const GetTrainerByUsernameName = "GET_TRAINER"
 
+const UpdateTrainerInfoPath = "/trainers/{username}"
+const UpdateTrainerInfo = "UPDATE_TRAINER_INFO"
+
 // trainer pokemons
 const AddPokemonPath = "/trainers/{username}/pokemons/"
 const AddPokemonName = "ADD_POKEMON"
@@ -33,9 +36,27 @@ const AddItemToBagName = "ADD_TO_BAG"
 const RemoveItemFromBagPath = "/trainers/{username}/bag/{itemId}"
 const RemoveItemFromBagName = "REMOVE_FROM_BAG"
 
-// token
+// tokens
+const VerifyTrainerStats = "VERIFY_STATS"
+const VerifyTrainerStatsPath = "/trainers/{username}/stats/verify"
 
-const VerifyTokenName = "/token"
+const VerifyPokemons = "VERIFY_POKEMONS"
+const VerifyPokemonsPath = "/trainers/{username}/pokemons/verify"
+
+const VerifyItems = "VERIFY_ITEMS"
+const VerifyItemsPath = "/trainers/{username}/bag/verify"
+
+const GenerateAllTokens = "GENERATE_ALL_TOKENS"
+const GenerateAllTokensPath = "/trainers/{username}/tokens"
+
+const GenerateTrainerStatsToken = "GENERATE_TRAINER_STATS_TOKEN"
+const GenerateTrainerStatsTokenPath = "/trainers/{username}/stats/token"
+
+const GenerateItemsToken = "GENERATE_TRAINER_ITEMS_TOKEN"
+const GenerateItemsTokenPath = "/trainers/{username}/items/token"
+
+const GeneratePokemonsToken = "GENERATE_TRAINER_POKEMONS_TOKEN"
+const GeneratePokemonsTokenPath = "/trainers/{username}/pokemons/token"
 
 var routes = utils.Routes{
 	// TRAINERS
@@ -45,6 +66,14 @@ var routes = utils.Routes{
 		Method:      GET,
 		Pattern:     AddTrainerPath,
 		HandlerFunc: AddTrainer,
+	},
+
+
+	utils.Route{
+		Name:        UpdateTrainerInfo,
+		Method:      PUT,
+		Pattern:     UpdateTrainerInfoPath,
+		HandlerFunc: HandleUpdateTrainerInfo,
 	},
 
 	utils.Route{
@@ -93,12 +122,74 @@ var routes = utils.Routes{
 		HandlerFunc: RemoveItemsFromTrainer,
 	},
 
-	// TOKEN
+	// TOKENS
 
 	utils.Route{
-		Name:        VerifyTokenName,
+		Name:        VerifyTrainerStats,
+		Method:      POST,
+		Pattern:     VerifyTrainerStatsPath,
+		HandlerFunc: HandleVerifyTrainerStats,
+	},
+
+	utils.Route{
+		Name:        VerifyPokemons,
+		Method:      POST,
+		Pattern:     VerifyPokemonsPath,
+		HandlerFunc: HandleVerifyTrainerPokemons,
+	},
+
+	utils.Route{
+		Name:        GenerateAllTokens,
 		Method:      GET,
-		Pattern:     VerifyTokenPath,
-		HandlerFunc: HandleVerifyTrainerToken,
+		Pattern:     GenerateAllTokensPath,
+		HandlerFunc: HandleGenerateAllTokens,
+	},
+
+	utils.Route{
+		Name:        GenerateTrainerStatsToken,
+		Method:      GET,
+		Pattern:     GenerateTrainerStatsTokenPath,
+		HandlerFunc: HandleGenerateTrainerStatsToken,
+	},
+
+	utils.Route{
+		Name:        GeneratePokemonsToken,
+		Method:      GET,
+		Pattern:     GeneratePokemonsTokenPath,
+		HandlerFunc: HandleGeneratePokemonsToken,
+	},
+
+	utils.Route{
+		Name:        GenerateItemsToken,
+		Method:      GET,
+		Pattern:     GenerateItemsTokenPath,
+		HandlerFunc: HandleGenerateItemsToken,
+	},
+	utils.Route{
+		Name:        VerifyItems,
+		Method:      POST,
+		Pattern:     VerifyItemsPath,
+		HandlerFunc: HandleVerifyTrainerItems,
+	},
+
+	utils.Route{
+		Name:        VerifyTrainerStats,
+		Method:      POST,
+		Pattern:     VerifyTrainerStatsPath,
+		HandlerFunc: HandleVerifyTrainerStats,
+	},
+
+	utils.Route{
+		Name:        VerifyPokemons,
+		Method:      POST,
+		Pattern:     VerifyPokemonsPath,
+		HandlerFunc: HandleVerifyTrainerPokemons,
+	},
+
+	utils.Route{
+		Name:        VerifyItems,
+		Method:      POST,
+		Pattern:     VerifyItemsPath,
+		HandlerFunc: HandleVerifyTrainerItems,
 	},
 }
