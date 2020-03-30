@@ -17,7 +17,9 @@ import (
 
 var key = []byte("my_secret_key")
 
-var decodeError = errors.New("An error occurred decoding the supplied resource")
+const serviceName = "Trainers"
+
+var decodeError = errors.New("an error occurred decoding the supplied resource")
 
 func AddTrainer(w http.ResponseWriter, r *http.Request) {
 
@@ -347,13 +349,14 @@ func HandleVerifyTrainerItems(w http.ResponseWriter, r *http.Request) {
 }
 
 func HandleGenerateAllTokens(w http.ResponseWriter, r *http.Request) {
+	// TODO remover a var do path
+	token, err := cookies.ExtractAndVerifyAuthToken(&w, r, serviceName)
 
-	vars := mux.Vars(r)
-	trainerUsername := vars["username"]
-
-	// TODO should require authentication
-
-	trainer, err := trainerdb.GetTrainerByUsername(trainerUsername)
+	if err != nil {
+		return
+	}
+	
+	trainer, err := trainerdb.GetTrainerByUsername(token.Username)
 
 	if err != nil {
 		handleError(err, w, r)
@@ -363,7 +366,6 @@ func HandleGenerateAllTokens(w http.ResponseWriter, r *http.Request) {
 	cookies.SetItemsCookie(trainer.Items, w, key)
 	cookies.SetPokemonsCookie(trainer.Pokemons, w, key)
 	cookies.SetTrainerStatsCookie(trainer.Stats, w, key)
-
 }
 
 func HandleGenerateTrainerStatsToken(w http.ResponseWriter, r *http.Request) {
