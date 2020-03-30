@@ -9,16 +9,16 @@ import (
 	"time"
 )
 
-const host = "localhost"
-const Port = 8004
+const host = utils.Host
+const port = utils.TrainersPort
 
-var addr = fmt.Sprintf("%s:%d", host, Port)
+var addr = fmt.Sprintf("%s:%d", host, port)
 
 func main() {
 	rand.Seed(time.Now().Unix())
 
 	r := utils.NewRouter(routes)
 
-	log.Infof("Starting TRADES server in port %d...\n", Port)
+	log.Infof("Starting TRADES server in port %d...\n", port)
 	log.Fatal(http.ListenAndServe(addr, r))
 }

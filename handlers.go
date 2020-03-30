@@ -17,10 +17,6 @@ import (
 )
 
 var TokenCookieName = "trainer_token"
-var h = md5.New()
-var key = []byte("my_secret_key")
-
-const hashSize = 16;
 
 type TrainerToken struct {
 	TrainerUserName string
@@ -32,7 +28,7 @@ type TrainerToken struct {
 	jwt.StandardClaims
 }
 
-var decodeError = errors.New("An error occurred decoding the supplied resource")
+var decodeError = errors.New("error occurred decoding the supplied resource")
 
 func AddTrainer(w http.ResponseWriter, r *http.Request) {
 
