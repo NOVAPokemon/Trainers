@@ -56,7 +56,6 @@ var routes = utils.Routes{
 		HandlerFunc: AddTrainer,
 	},
 
-
 	utils.Route{
 		Name:        UpdateTrainerInfo,
 		Method:      PUT,

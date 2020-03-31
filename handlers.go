@@ -27,21 +27,21 @@ func AddTrainer(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(trainer)
 
 	if err != nil {
-		handleError(decodeError, w, r)
+		handleError(decodeError, w)
 		return
 	}
 
 	_, err = trainerdb.AddTrainer(*trainer)
 
 	if err != nil {
-		handleError(err, w, r)
+		handleError(err, w)
 		return
 	}
 
 	toSend, err := json.Marshal(trainer)
 
 	if err != nil {
-		handleError(err, w, r)
+		handleError(err, w)
 		return
 	}
 	_, err = w.Write(toSend)
@@ -61,21 +61,21 @@ func HandleUpdateTrainerInfo(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(trainer)
 
 	if err != nil {
-		handleError(err, w, r)
+		handleError(err, w)
 		return
 	}
 
 	trainer, err = trainerdb.UpdateTrainerStats(trainerUsername, *trainer)
 
 	if err != nil {
-		handleError(err, w, r)
+		handleError(err, w)
 		return
 	}
 
 	toSend, err := json.Marshal(trainer)
 
 	if err != nil {
-		handleError(err, w, r)
+		handleError(err, w)
 		return
 	}
 	_, err = w.Write(toSend)
@@ -85,7 +85,7 @@ func HandleUpdateTrainerInfo(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func GetAllTrainers(w http.ResponseWriter, r *http.Request) {
+func GetAllTrainers(w http.ResponseWriter, _ *http.Request) {
 
 	trainers, err := trainerdb.GetAllTrainers()
 
@@ -96,7 +96,7 @@ func GetAllTrainers(w http.ResponseWriter, r *http.Request) {
 	toSend, err := json.Marshal(trainers)
 
 	if err != nil {
-		handleError(err, w, r)
+		handleError(err, w)
 		return
 	}
 
@@ -116,13 +116,13 @@ func GetTrainerByUsername(w http.ResponseWriter, r *http.Request) {
 	trainer, err := trainerdb.GetTrainerByUsername(trainerUsername)
 
 	if err != nil {
-		handleError(err, w, r)
+		handleError(err, w)
 		return
 	}
 
 	toSend, err := json.Marshal(trainer)
 	if err != nil {
-		handleError(err, w, r)
+		handleError(err, w)
 		return
 	}
 	_, err = w.Write(toSend)
@@ -142,20 +142,20 @@ func AddPokemonToTrainer(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(pokemon)
 
 	if err != nil {
-		handleError(err, w, r)
+		handleError(err, w)
 		return
 	}
 
 	pokemon, err = trainerdb.AddPokemonToTrainer(trainerUsername, *pokemon)
 
 	if err != nil {
-		handleError(err, w, r)
+		handleError(err, w)
 		return
 	}
 
 	toSend, err := json.Marshal(*pokemon)
 	if err != nil {
-		handleError(err, w, r)
+		handleError(err, w)
 		return
 	}
 	_, err = w.Write(toSend)
@@ -171,14 +171,14 @@ func RemovePokemonFromTrainer(w http.ResponseWriter, r *http.Request) {
 	pokemonId, err := primitive.ObjectIDFromHex(vars["pokemonId"])
 
 	if err != nil {
-		handleError(err, w, r)
+		handleError(err, w)
 		return
 	}
 
 	err = trainerdb.RemovePokemonFromTrainer(trainerUsername, pokemonId)
 
 	if err != nil {
-		handleError(err, w, r)
+		handleError(err, w)
 		return
 	}
 
@@ -194,20 +194,20 @@ func AddItemsToTrainer(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(item)
 
 	if err != nil {
-		handleError(err, w, r)
+		handleError(err, w)
 		return
 	}
 
 	addedItem, err := trainerdb.AddItemToTrainer(trainerUsername, *item)
 
 	if err != nil {
-		handleError(err, w, r)
+		handleError(err, w)
 		return
 	}
 
 	toSend, err := json.Marshal(*addedItem)
 	if err != nil {
-		handleError(err, w, r)
+		handleError(err, w)
 		return
 	}
 	_, err = w.Write(toSend)
@@ -229,7 +229,7 @@ func RemoveItemsFromTrainer(w http.ResponseWriter, r *http.Request) {
 		itemId, err := primitive.ObjectIDFromHex(itemIdStr)
 
 		if err != nil {
-			handleError(decodeError, w, r)
+			handleError(decodeError, w)
 			return
 		}
 		itemIds = append(itemIds, itemId)
@@ -238,13 +238,13 @@ func RemoveItemsFromTrainer(w http.ResponseWriter, r *http.Request) {
 	removedItems, err := trainerdb.RemoveItemsFromTrainer(trainerUsername, itemIds)
 
 	if err != nil {
-		handleError(err, w, r)
+		handleError(err, w)
 		return
 	}
 
 	toSend, err := json.Marshal(removedItems)
 	if err != nil {
-		handleError(err, w, r)
+		handleError(err, w)
 		return
 	}
 	_, err = w.Write(toSend)
@@ -257,22 +257,23 @@ func RemoveItemsFromTrainer(w http.ResponseWriter, r *http.Request) {
 // receives a POST request with a hash of the pokemons stats
 // returns true or false depending on if they are up to date
 func HandleVerifyTrainerPokemons(w http.ResponseWriter, r *http.Request) {
-
-	vars := mux.Vars(r)
-	trainerUsername := vars["username"]
-	var pokemonHashes map[string][]byte
-
-	err := json.NewDecoder(r.Body).Decode(pokemonHashes)
-
+	token, err := cookies.ExtractAndVerifyAuthToken(&w, r, serviceName)
 	if err != nil {
-		handleError(decodeError, w, r)
 		return
 	}
 
-	trainer, err := trainerdb.GetTrainerByUsername(trainerUsername)
+	var pokemonHashes map[string][]byte
+	err = json.NewDecoder(r.Body).Decode(pokemonHashes)
 
 	if err != nil {
-		handleError(err, w, r)
+		handleError(decodeError, w)
+		return
+	}
+
+	trainer, err := trainerdb.GetTrainerByUsername(token.Username)
+
+	if err != nil {
+		handleError(err, w)
 		return
 	}
 
@@ -289,20 +290,21 @@ func HandleVerifyTrainerPokemons(w http.ResponseWriter, r *http.Request) {
 			_, _ = w.Write(toSend)
 		}
 	}
-
 }
 
 // receives a POST request with a hash of the trainer stats
 // returns true or false depending on if they are up to date
 func HandleVerifyTrainerStats(w http.ResponseWriter, r *http.Request) {
+	token, err := cookies.ExtractAndVerifyAuthToken(&w, r, serviceName)
+	if err != nil {
+		return
+	}
 
-	vars := mux.Vars(r)
-	trainerUsername := vars["username"]
 	hash := r.Body
-	trainer, err := trainerdb.GetTrainerByUsername(trainerUsername)
+	trainer, err := trainerdb.GetTrainerByUsername(token.Username)
 
 	if err != nil {
-		handleError(err, w, r)
+		handleError(err, w)
 		return
 	}
 
@@ -323,14 +325,16 @@ func HandleVerifyTrainerStats(w http.ResponseWriter, r *http.Request) {
 // receives a POST request with a hash of the trainer items
 // returns true or false depending on if they are up to date
 func HandleVerifyTrainerItems(w http.ResponseWriter, r *http.Request) {
+	token, err := cookies.ExtractAndVerifyAuthToken(&w, r, serviceName)
+	if err != nil {
+		return
+	}
 
-	vars := mux.Vars(r)
-	trainerUsername := vars["username"]
 	receivedHash := r.Body
-	trainer, err := trainerdb.GetTrainerByUsername(trainerUsername)
+	trainer, err := trainerdb.GetTrainerByUsername(token.Username)
 
 	if err != nil {
-		handleError(err, w, r)
+		handleError(err, w)
 		return
 	}
 
@@ -345,13 +349,10 @@ func HandleVerifyTrainerItems(w http.ResponseWriter, r *http.Request) {
 		toSend, _ := json.Marshal(false)
 		_, _ = w.Write(toSend)
 	}
-
 }
 
 func HandleGenerateAllTokens(w http.ResponseWriter, r *http.Request) {
-	// TODO remover a var do path
 	token, err := cookies.ExtractAndVerifyAuthToken(&w, r, serviceName)
-
 	if err != nil {
 		return
 	}
@@ -359,7 +360,8 @@ func HandleGenerateAllTokens(w http.ResponseWriter, r *http.Request) {
 	trainer, err := trainerdb.GetTrainerByUsername(token.Username)
 
 	if err != nil {
-		handleError(err, w, r)
+		log.Error(token.Username)
+		handleError(err, w)
 		return
 	}
 
@@ -369,43 +371,48 @@ func HandleGenerateAllTokens(w http.ResponseWriter, r *http.Request) {
 }
 
 func HandleGenerateTrainerStatsToken(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	trainerUsername := vars["username"]
-	// TODO should require authentication
-	trainer, err := trainerdb.GetTrainerByUsername(trainerUsername)
+	token, err := cookies.ExtractAndVerifyAuthToken(&w, r, serviceName)
 	if err != nil {
-		handleError(err, w, r)
+		return
+	}
+
+	trainer, err := trainerdb.GetTrainerByUsername(token.Username)
+	if err != nil {
+		handleError(err, w)
 		return
 	}
 	cookies.SetTrainerStatsCookie(trainer.Stats, w, key)
 }
 
 func HandleGeneratePokemonsToken(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	trainerUsername := vars["username"]
-	// TODO should require authentication
-	trainer, err := trainerdb.GetTrainerByUsername(trainerUsername)
+	token, err := cookies.ExtractAndVerifyAuthToken(&w, r, serviceName)
 	if err != nil {
-		handleError(err, w, r)
+		return
+	}
+
+	trainer, err := trainerdb.GetTrainerByUsername(token.Username)
+	if err != nil {
+		handleError(err, w)
 		return
 	}
 	cookies.SetPokemonsCookie(trainer.Pokemons, w, key)
 }
 
 func HandleGenerateItemsToken(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	trainerUsername := vars["username"]
-	// TODO should require authentication
-	trainer, err := trainerdb.GetTrainerByUsername(trainerUsername)
+	token, err := cookies.ExtractAndVerifyAuthToken(&w, r, serviceName)
 	if err != nil {
-		handleError(err, w, r)
+		return
+	}
+
+	trainer, err := trainerdb.GetTrainerByUsername(token.Username)
+	if err != nil {
+		handleError(err, w)
 		return
 	}
 	cookies.SetItemsCookie(trainer.Items, w, key)
 }
 
-func handleError(err error, w http.ResponseWriter, r *http.Request) {
-
+func handleError(err error, w http.ResponseWriter) {
 	log.Error(err)
 
 	switch err {
