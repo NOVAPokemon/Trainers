@@ -8,7 +8,7 @@ const AddTrainerPath = "/trainers/"
 const GetTrainersPath = "/trainers/"
 
 const GetTrainerByUsernamePath = "/trainers/%s"
-const UpdateTrainerInfoPath = "/trainers/%s"
+const UpdateTrainerStatsPath = "/trainers/%s"
 
 // trainer pokemons
 const AddPokemonPath = "/trainers/%s/pokemons/"
