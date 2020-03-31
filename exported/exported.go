@@ -1,28 +1,28 @@
 package exported
 
-import "fmt"
 
-const UsernamePathVar = "username"
-const PokemonIdPathVar = "%s, PokemonIdPathVar"
-const ItemIdPathVar = "itemId"
+// PATHS
 
-var AddTrainerPath = "/trainers/"
-var GetTrainersPath = "/trainers/"
+// trainer
+const AddTrainerPath = "/trainers/"
+const GetTrainersPath = "/trainers/"
 
-var GetTrainerByUsernamePath = fmt.Sprintf("/trainers/{%s}", UsernamePathVar)
-var UpdateTrainerInfoPath = fmt.Sprintf("/trainers/{%s}", UsernamePathVar)
+const GetTrainerByUsernamePath = "/trainers/%s"
+const UpdateTrainerInfoPath = "/trainers/%s"
 
-var AddPokemonPath = fmt.Sprintf("/trainers/{%s}/pokemons/", UsernamePathVar)
-var RemovePokemonPath = fmt.Sprintf("/trainers/{%s}/pokemons/{%s}", UsernamePathVar, PokemonIdPathVar)
+// trainer pokemons
+const AddPokemonPath = "/trainers/%s/pokemons/"
+const RemovePokemonPath = "/trainers/%s/pokemons/%s"
 
-var AddItemToBagPath = fmt.Sprintf("/trainers/{%s}/bag/", UsernamePathVar)
-var RemoveItemFromBagPath = fmt.Sprintf("/trainers/{%s}/bag/{%s}", UsernamePathVar, ItemIdPathVar)
+// trainer bag
+const AddItemToBagPath = "/trainers/%s/bag/"
+const RemoveItemFromBagPath = "/trainers/%s/bag/%s"
 
-var VerifyTrainerStatsPath = fmt.Sprintf("/trainers/{%s}/stats/verify", UsernamePathVar)
-var VerifyPokemonsPath = fmt.Sprintf("/trainers/{%s}/pokemons/verify", UsernamePathVar)
-var VerifyItemsPath = fmt.Sprintf("/trainers/{%s}/bag/verify", UsernamePathVar)
-
-var GenerateAllTokensPath = fmt.Sprintf("/trainers/{%s}/tokens", UsernamePathVar)
-var GenerateTrainerStatsTokenPath = fmt.Sprintf("/trainers/{%s}/stats/token", UsernamePathVar)
-var GenerateItemsTokenPath = fmt.Sprintf("/trainers/{%s}/items/token", UsernamePathVar)
-var GeneratePokemonsTokenPath = fmt.Sprintf("/trainers/{%s}/pokemons/token", UsernamePathVar)
+// Tokens
+const VerifyTrainerStatsPath = "/trainers/%s/stats/verify"
+const VerifyPokemonsPath = "/trainers/%s/pokemons/verify"
+const VerifyItemsPath = "/trainers/%s/bag/verify"
+const GenerateAllTokensPath = "/trainers/%s/tokens"
+const GenerateTrainerStatsTokenPath = "/trainers/%s/stats/token"
+const GenerateItemsTokenPath = "/trainers/%s/items/token"
+const GeneratePokemonsTokenPath = "/trainers/%s/pokemons/token"

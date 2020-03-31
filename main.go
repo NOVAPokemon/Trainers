@@ -19,6 +19,6 @@ func main() {
 
 	r := utils.NewRouter(routes)
 
-	log.Infof("Starting TRADES server in port %d...\n", port)
+	log.Infof("Starting TRAINERS server in port %d...\n", port)
 	log.Fatal(http.ListenAndServe(addr, r))
 }
