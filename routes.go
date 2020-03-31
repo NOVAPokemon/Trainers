@@ -10,53 +10,40 @@ const DELETE = "DELETE"
 const PUT = "PUT"
 
 // trainer
-const AddTrainerPath = "/trainers/"
+
 const AddTrainerName = "CREATE_TRAINER"
 
-const GetTrainersPath = "/trainers/"
+
 const GetTrainersName = "GET_TRAINERS"
 
-const GetTrainerByUsernamePath = "/trainers/{username}"
 const GetTrainerByUsernameName = "GET_TRAINER"
 
-const UpdateTrainerInfoPath = "/trainers/{username}"
 const UpdateTrainerInfo = "UPDATE_TRAINER_INFO"
 
 // trainer pokemons
-const AddPokemonPath = "/trainers/{username}/pokemons/"
 const AddPokemonName = "ADD_POKEMON"
 
-const RemovePokemonPath = "/trainers/{username}/pokemons/{pokemonId}"
 const RemovePokemonName = "REMOVE_POKEMON"
 
 // trainer bag
-const AddItemToBagPath = "/trainers/{username}/bag/"
 const AddItemToBagName = "ADD_TO_BAG"
 
-const RemoveItemFromBagPath = "/trainers/{username}/bag/{itemId}"
 const RemoveItemFromBagName = "REMOVE_FROM_BAG"
 
 // tokens
 const VerifyTrainerStats = "VERIFY_STATS"
-const VerifyTrainerStatsPath = "/trainers/{username}/stats/verify"
 
 const VerifyPokemons = "VERIFY_POKEMONS"
-const VerifyPokemonsPath = "/trainers/{username}/pokemons/verify"
 
 const VerifyItems = "VERIFY_ITEMS"
-const VerifyItemsPath = "/trainers/{username}/bag/verify"
 
 const GenerateAllTokens = "GENERATE_ALL_TOKENS"
-const GenerateAllTokensPath = "/trainers/{username}/tokens"
 
 const GenerateTrainerStatsToken = "GENERATE_TRAINER_STATS_TOKEN"
-const GenerateTrainerStatsTokenPath = "/trainers/{username}/stats/token"
 
 const GenerateItemsToken = "GENERATE_TRAINER_ITEMS_TOKEN"
-const GenerateItemsTokenPath = "/trainers/{username}/items/token"
 
 const GeneratePokemonsToken = "GENERATE_TRAINER_POKEMONS_TOKEN"
-const GeneratePokemonsTokenPath = "/trainers/{username}/pokemons/token"
 
 var routes = utils.Routes{
 	// TRAINERS
