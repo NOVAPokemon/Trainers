@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/NOVAPokemon/trainers/exported"
 	"github.com/NOVAPokemon/utils"
 )
@@ -11,30 +12,18 @@ const DELETE = "DELETE"
 const PUT = "PUT"
 
 // trainer
-const AddTrainerPath = "/trainers/"
 const AddTrainerName = "CREATE_TRAINER"
-
-const GetTrainersPath = "/trainers/"
 const GetTrainersName = "GET_TRAINERS"
 
-const GetTrainerByUsernamePath = "/trainers/{username}"
 const GetTrainerByUsernameName = "GET_TRAINER"
-
-const UpdateTrainerInfoPath = "/trainers/{username}"
 const UpdateTrainerInfo = "UPDATE_TRAINER_INFO"
 
 // trainer pokemons
-const AddPokemonPath = "/trainers/{username}/pokemons/"
 const AddPokemonName = "ADD_POKEMON"
-
-const RemovePokemonPath = "/trainers/{username}/pokemons/{pokemonId}"
 const RemovePokemonName = "REMOVE_POKEMON"
 
 // trainer bag
-const AddItemToBagPath = "/trainers/{username}/bag/"
 const AddItemToBagName = "ADD_TO_BAG"
-
-const RemoveItemFromBagPath = "/trainers/{username}/bag/{itemId}"
 const RemoveItemFromBagName = "REMOVE_FROM_BAG"
 
 // tokens
@@ -46,34 +35,59 @@ const GenerateTrainerStatsToken = "GENERATE_TRAINER_STATS_TOKEN"
 const GenerateItemsToken = "GENERATE_TRAINER_ITEMS_TOKEN"
 const GeneratePokemonsToken = "GENERATE_TRAINER_POKEMONS_TOKEN"
 
+// ROUTES
+const UsernameVar = "username"
+const PokemonIdVar = "pokemonId"
+const ItemIdVar = "itemId"
+
+var GetTrainerByUsernameRoute = fmt.Sprintf("/trainers/{%s}", UsernameVar)
+var UpdateTrainerInfoRoute = fmt.Sprintf("/trainers/{%s}", UsernameVar)
+
+// trainer pokemons
+var AddPokemonRoute = fmt.Sprintf("/trainers/{%s}/pokemons/", UsernameVar)
+var RemovePokemonRoute = fmt.Sprintf("/trainers/{%s}/pokemons/{%s}", UsernameVar, PokemonIdVar)
+
+// trainer bag
+var AddItemToBagRoute = fmt.Sprintf("/trainers/{%s}/bag/", UsernameVar)
+var RemoveItemFromBagRoute = fmt.Sprintf("/trainers/{%s}/bag/{%s}", UsernameVar, ItemIdVar)
+
+// Tokens
+var VerifyTrainerStatsRoute = fmt.Sprintf("/trainers/{%s}/stats/verify", UsernameVar)
+var VerifyPokemonsRoute = fmt.Sprintf("/trainers/{%s}/pokemons/verify", UsernameVar)
+var VerifyItemsRoute = fmt.Sprintf("/trainers/{%s}/bag/verify", UsernameVar)
+var GenerateAllTokensRoute = fmt.Sprintf("/trainers/{%s}/tokens", UsernameVar)
+var GenerateTrainerStatsTokenRoute = fmt.Sprintf("/trainers/{%s}/stats/token", UsernameVar)
+var GenerateItemsTokenRoute = fmt.Sprintf("/trainers/{%s}/items/token", UsernameVar)
+var GeneratePokemonsTokenRoute = fmt.Sprintf("/trainers/{%s}/pokemons/token", UsernameVar)
+
 var routes = utils.Routes{
 	// TRAINERS
 
 	utils.Route{
 		Name:        AddTrainerName,
 		Method:      GET,
-		Pattern:     AddTrainerPath,
+		Pattern:     exported.AddTrainerPath,
 		HandlerFunc: AddTrainer,
 	},
 
 	utils.Route{
 		Name:        UpdateTrainerInfo,
 		Method:      PUT,
-		Pattern:     UpdateTrainerInfoPath,
+		Pattern:     UpdateTrainerInfoRoute,
 		HandlerFunc: HandleUpdateTrainerInfo,
 	},
 
 	utils.Route{
 		Name:        GetTrainersName,
 		Method:      GET,
-		Pattern:     GetTrainersPath,
+		Pattern:     exported.GetTrainersPath,
 		HandlerFunc: GetAllTrainers,
 	},
 
 	utils.Route{
 		Name:        GetTrainerByUsernameName,
 		Method:      GET,
-		Pattern:     GetTrainerByUsernamePath,
+		Pattern:     GetTrainerByUsernameRoute,
 		HandlerFunc: GetTrainerByUsername,
 	},
 
@@ -82,14 +96,14 @@ var routes = utils.Routes{
 	utils.Route{
 		Name:        AddPokemonName,
 		Method:      POST,
-		Pattern:     AddPokemonPath,
+		Pattern:     AddPokemonRoute,
 		HandlerFunc: AddPokemonToTrainer,
 	},
 
 	utils.Route{
 		Name:        RemovePokemonName,
 		Method:      DELETE,
-		Pattern:     RemovePokemonPath,
+		Pattern:     RemovePokemonRoute,
 		HandlerFunc: RemovePokemonFromTrainer,
 	},
 
@@ -98,14 +112,14 @@ var routes = utils.Routes{
 	utils.Route{
 		Name:        AddItemToBagName,
 		Method:      POST,
-		Pattern:     AddItemToBagPath,
+		Pattern:     AddItemToBagRoute,
 		HandlerFunc: AddItemsToTrainer,
 	},
 
 	utils.Route{
 		Name:        RemoveItemFromBagName,
 		Method:      DELETE,
-		Pattern:     RemoveItemFromBagPath,
+		Pattern:     RemoveItemFromBagRoute,
 		HandlerFunc: RemoveItemsFromTrainer,
 	},
 
@@ -114,70 +128,70 @@ var routes = utils.Routes{
 	utils.Route{
 		Name:        VerifyTrainerStats,
 		Method:      POST,
-		Pattern:     exported.VerifyTrainerStatsPath,
+		Pattern:     VerifyTrainerStatsRoute,
 		HandlerFunc: HandleVerifyTrainerStats,
 	},
 
 	utils.Route{
 		Name:        VerifyPokemons,
 		Method:      POST,
-		Pattern:     exported.VerifyPokemonsPath,
+		Pattern:     VerifyPokemonsRoute,
 		HandlerFunc: HandleVerifyTrainerPokemons,
 	},
 
 	utils.Route{
 		Name:        GenerateAllTokens,
 		Method:      GET,
-		Pattern:     exported.GenerateAllTokensPath,
+		Pattern:     GenerateAllTokensRoute,
 		HandlerFunc: HandleGenerateAllTokens,
 	},
 
 	utils.Route{
 		Name:        GenerateTrainerStatsToken,
 		Method:      GET,
-		Pattern:     exported.GenerateTrainerStatsTokenPath,
+		Pattern:     GenerateTrainerStatsTokenRoute,
 		HandlerFunc: HandleGenerateTrainerStatsToken,
 	},
 
 	utils.Route{
 		Name:        GeneratePokemonsToken,
 		Method:      GET,
-		Pattern:     exported.GeneratePokemonsTokenPath,
+		Pattern:     GeneratePokemonsTokenRoute,
 		HandlerFunc: HandleGeneratePokemonsToken,
 	},
 
 	utils.Route{
 		Name:        GenerateItemsToken,
 		Method:      GET,
-		Pattern:     exported.GenerateItemsTokenPath,
+		Pattern:     GenerateItemsTokenRoute,
 		HandlerFunc: HandleGenerateItemsToken,
 	},
 
 	utils.Route{
 		Name:        VerifyItems,
 		Method:      POST,
-		Pattern:     exported.VerifyItemsPath,
+		Pattern:     VerifyItemsRoute,
 		HandlerFunc: HandleVerifyTrainerItems,
 	},
 
 	utils.Route{
 		Name:        VerifyTrainerStats,
 		Method:      POST,
-		Pattern:     exported.VerifyTrainerStatsPath,
+		Pattern:     VerifyTrainerStatsRoute,
 		HandlerFunc: HandleVerifyTrainerStats,
 	},
 
 	utils.Route{
 		Name:        VerifyPokemons,
 		Method:      POST,
-		Pattern:     exported.VerifyPokemonsPath,
+		Pattern:     VerifyPokemonsRoute,
 		HandlerFunc: HandleVerifyTrainerPokemons,
 	},
 
 	utils.Route{
 		Name:        VerifyItems,
 		Method:      POST,
-		Pattern:     exported.VerifyItemsPath,
+		Pattern:     VerifyItemsRoute,
 		HandlerFunc: HandleVerifyTrainerItems,
 	},
 }

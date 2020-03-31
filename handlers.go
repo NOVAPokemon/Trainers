@@ -22,7 +22,6 @@ const serviceName = "Trainers"
 var decodeError = errors.New("an error occurred decoding the supplied resource")
 
 func AddTrainer(w http.ResponseWriter, r *http.Request) {
-
 	var trainer = &utils.Trainer{}
 	err := json.NewDecoder(r.Body).Decode(trainer)
 
@@ -53,9 +52,8 @@ func AddTrainer(w http.ResponseWriter, r *http.Request) {
 }
 
 func HandleUpdateTrainerInfo(w http.ResponseWriter, r *http.Request) {
-
 	vars := mux.Vars(r)
-	trainerUsername := vars["username"]
+	trainerUsername := vars[UsernameVar]
 	var trainer = &utils.Trainer{}
 
 	err := json.NewDecoder(r.Body).Decode(trainer)
@@ -86,7 +84,6 @@ func HandleUpdateTrainerInfo(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetAllTrainers(w http.ResponseWriter, _ *http.Request) {
-
 	trainers, err := trainerdb.GetAllTrainers()
 
 	if err != nil {
@@ -109,9 +106,8 @@ func GetAllTrainers(w http.ResponseWriter, _ *http.Request) {
 }
 
 func GetTrainerByUsername(w http.ResponseWriter, r *http.Request) {
-
 	vars := mux.Vars(r)
-	trainerUsername := vars["username"]
+	trainerUsername := vars[UsernameVar]
 
 	trainer, err := trainerdb.GetTrainerByUsername(trainerUsername)
 
@@ -133,9 +129,8 @@ func GetTrainerByUsername(w http.ResponseWriter, r *http.Request) {
 }
 
 func AddPokemonToTrainer(w http.ResponseWriter, r *http.Request) {
-
 	vars := mux.Vars(r)
-	trainerUsername := vars["username"]
+	trainerUsername := vars[UsernameVar]
 
 	var pokemon = &utils.Pokemon{}
 
@@ -167,8 +162,8 @@ func AddPokemonToTrainer(w http.ResponseWriter, r *http.Request) {
 
 func RemovePokemonFromTrainer(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	trainerUsername := vars["username"]
-	pokemonId, err := primitive.ObjectIDFromHex(vars["pokemonId"])
+	trainerUsername := vars[UsernameVar]
+	pokemonId, err := primitive.ObjectIDFromHex(vars[PokemonIdVar])
 
 	if err != nil {
 		handleError(err, w)
@@ -185,9 +180,8 @@ func RemovePokemonFromTrainer(w http.ResponseWriter, r *http.Request) {
 }
 
 func AddItemsToTrainer(w http.ResponseWriter, r *http.Request) {
-
 	vars := mux.Vars(r)
-	trainerUsername := vars["username"]
+	trainerUsername := vars[UsernameVar]
 
 	var item = &utils.Item{}
 
@@ -219,13 +213,11 @@ func AddItemsToTrainer(w http.ResponseWriter, r *http.Request) {
 }
 
 func RemoveItemsFromTrainer(w http.ResponseWriter, r *http.Request) {
-
 	vars := mux.Vars(r)
-	trainerUsername := vars["username"]
+	trainerUsername := vars[UsernameVar]
 	var itemIds []primitive.ObjectID
 
-	for _, itemIdStr := range strings.Split(vars["itemIds"], ",") {
-
+	for _, itemIdStr := range strings.Split(vars[ItemIdVar], ",") {
 		itemId, err := primitive.ObjectIDFromHex(itemIdStr)
 
 		if err != nil {
@@ -352,11 +344,13 @@ func HandleVerifyTrainerItems(w http.ResponseWriter, r *http.Request) {
 }
 
 func HandleGenerateAllTokens(w http.ResponseWriter, r *http.Request) {
+	log.Warn("PLS TELL ME IM HERE!")
 	token, err := cookies.ExtractAndVerifyAuthToken(&w, r, serviceName)
 	if err != nil {
 		return
 	}
-	
+
+
 	trainer, err := trainerdb.GetTrainerByUsername(token.Username)
 
 	if err != nil {
