@@ -52,23 +52,23 @@ func AddTrainer(w http.ResponseWriter, r *http.Request) {
 func HandleUpdateTrainerInfo(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	trainerUsername := vars[UsernameVar]
-	var trainer = &utils.Trainer{}
+	var trainerStats = &utils.TrainerStats{}
 
-	err := json.NewDecoder(r.Body).Decode(trainer)
-
-	if err != nil {
-		handleError(err, w)
-		return
-	}
-
-	trainer, err = trainerdb.UpdateTrainerStats(trainerUsername, *trainer)
+	err := json.NewDecoder(r.Body).Decode(trainerStats)
 
 	if err != nil {
 		handleError(err, w)
 		return
 	}
 
-	toSend, err := json.Marshal(trainer)
+	trainerStats, err = trainerdb.UpdateTrainerStats(trainerUsername, *trainerStats)
+
+	if err != nil {
+		handleError(err, w)
+		return
+	}
+
+	toSend, err := json.Marshal(trainerStats)
 
 	if err != nil {
 		handleError(err, w)
