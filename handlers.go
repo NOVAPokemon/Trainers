@@ -15,8 +15,6 @@ import (
 	"strings"
 )
 
-var key = []byte("my_secret_key")
-
 const serviceName = "Trainers"
 
 var decodeError = errors.New("an error occurred decoding the supplied resource")
@@ -344,12 +342,10 @@ func HandleVerifyTrainerItems(w http.ResponseWriter, r *http.Request) {
 }
 
 func HandleGenerateAllTokens(w http.ResponseWriter, r *http.Request) {
-	log.Warn("PLS TELL ME IM HERE!")
 	token, err := cookies.ExtractAndVerifyAuthToken(&w, r, serviceName)
 	if err != nil {
 		return
 	}
-
 
 	trainer, err := trainerdb.GetTrainerByUsername(token.Username)
 
@@ -359,9 +355,9 @@ func HandleGenerateAllTokens(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cookies.SetItemsCookie(trainer.Items, w, key)
-	cookies.SetPokemonsCookie(trainer.Pokemons, w, key)
-	cookies.SetTrainerStatsCookie(trainer.Stats, w, key)
+	cookies.SetItemsCookie(trainer.Items, w)
+	cookies.SetPokemonsCookie(trainer.Pokemons, w)
+	cookies.SetTrainerStatsCookie(trainer.Stats, w)
 }
 
 func HandleGenerateTrainerStatsToken(w http.ResponseWriter, r *http.Request) {
@@ -375,7 +371,7 @@ func HandleGenerateTrainerStatsToken(w http.ResponseWriter, r *http.Request) {
 		handleError(err, w)
 		return
 	}
-	cookies.SetTrainerStatsCookie(trainer.Stats, w, key)
+	cookies.SetTrainerStatsCookie(trainer.Stats, w)
 }
 
 func HandleGeneratePokemonsToken(w http.ResponseWriter, r *http.Request) {
@@ -389,7 +385,7 @@ func HandleGeneratePokemonsToken(w http.ResponseWriter, r *http.Request) {
 		handleError(err, w)
 		return
 	}
-	cookies.SetPokemonsCookie(trainer.Pokemons, w, key)
+	cookies.SetPokemonsCookie(trainer.Pokemons, w)
 }
 
 func HandleGenerateItemsToken(w http.ResponseWriter, r *http.Request) {
@@ -403,7 +399,7 @@ func HandleGenerateItemsToken(w http.ResponseWriter, r *http.Request) {
 		handleError(err, w)
 		return
 	}
-	cookies.SetItemsCookie(trainer.Items, w, key)
+	cookies.SetItemsCookie(trainer.Items, w)
 }
 
 func handleError(err error, w http.ResponseWriter) {
