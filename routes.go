@@ -39,7 +39,7 @@ var routes = utils.Routes{
 
 	utils.Route{
 		Name:        AddTrainerName,
-		Method:      GET,
+		Method:      POST,
 		Pattern:     api.AddTrainerPath,
 		HandlerFunc: AddTrainer,
 	},

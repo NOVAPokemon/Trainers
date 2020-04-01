@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"crypto/md5"
 	"encoding/json"
 	"errors"
@@ -84,7 +85,6 @@ func HandleUpdateTrainerInfo(w http.ResponseWriter, r *http.Request) {
 
 func GetAllTrainers(w http.ResponseWriter, _ *http.Request) {
 	trainers, err := trainerdb.GetAllTrainers()
-
 	if err != nil {
 		http.Error(w, "An error occurred fetching trainers", http.StatusInternalServerError)
 	}
@@ -329,7 +329,13 @@ func HandleVerifyTrainerItems(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	receivedHash := r.Body
+	var receivedHash []byte
+	err = json.NewDecoder(r.Body).Decode(&receivedHash)
+	if err != nil {
+		log.Error(err)
+		return
+	}
+
 	trainer, err := trainerdb.GetTrainerByUsername(token.Username)
 
 	if err != nil {
@@ -338,15 +344,22 @@ func HandleVerifyTrainerItems(w http.ResponseWriter, r *http.Request) {
 	}
 
 	itemsBytes, _ := json.Marshal(trainer.Items)
-	itemsHash := md5.Sum(itemsBytes)
-	if reflect.DeepEqual(itemsHash, receivedHash) {
+	itemsHashTemp := md5.Sum(itemsBytes)
+	itemsHash := itemsHashTemp[:]
+
+	log.Info(itemsHash)
+	log.Info(receivedHash)
+
+	if bytes.Equal(itemsHash, receivedHash) {
 		w.WriteHeader(200)
 		toSend, _ := json.Marshal(true)
 		_, _ = w.Write(toSend)
+		log.Info("verify items: ", true)
 	} else {
 		w.WriteHeader(200)
 		toSend, _ := json.Marshal(false)
 		_, _ = w.Write(toSend)
+		log.Info("verify items: ", false)
 	}
 }
 
