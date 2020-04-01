@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"github.com/NOVAPokemon/utils"
 	"github.com/NOVAPokemon/utils/api"
 )
@@ -35,32 +34,6 @@ const GenerateTrainerStatsToken = "GENERATE_TRAINER_STATS_TOKEN"
 const GenerateItemsToken = "GENERATE_TRAINER_ITEMS_TOKEN"
 const GeneratePokemonsToken = "GENERATE_TRAINER_POKEMONS_TOKEN"
 
-// ROUTES
-const UsernameVar = "username"
-const PokemonIdVar = "pokemonId"
-const ItemIdVar = "itemId"
-
-var GetTrainerByUsernameRoute = fmt.Sprintf(api.GetTrainerByUsernamePath, UsernameVar)
-var UpdateTrainerStatsRoute = fmt.Sprintf(api.UpdateTrainerStatsPath, UsernameVar)
-
-// trainer pokemons
-var AddPokemonRoute = fmt.Sprintf(api.AddPokemonPath, UsernameVar)
-var RemovePokemonRoute = fmt.Sprintf(api.RemovePokemonPath, UsernameVar, PokemonIdVar)
-
-// trainer bag
-var AddItemToBagRoute = fmt.Sprintf(api.AddItemToBagPath, UsernameVar)
-var RemoveItemFromBagRoute = fmt.Sprintf(api.RemoveItemFromBagPath, UsernameVar, ItemIdVar)
-
-// Tokens
-var VerifyTrainerStatsRoute = fmt.Sprintf(api.VerifyTrainerStatsPath, UsernameVar)
-var VerifyPokemonRoute = fmt.Sprintf(api.VerifyPokemonPath, UsernameVar)
-var VerifyItemsRoute = fmt.Sprintf(api.VerifyItemsPath, UsernameVar)
-
-var GenerateAllTokensRoute = fmt.Sprintf(api.GenerateAllTokensPath, UsernameVar)
-var GenerateTrainerStatsTokenRoute = fmt.Sprintf(api.GenerateTrainerStatsTokenPath, UsernameVar)
-var GenerateItemsTokenRoute = fmt.Sprintf(api.GenerateItemsTokenPath, UsernameVar)
-var GeneratePokemonsTokenRoute = fmt.Sprintf(api.GeneratePokemonsTokenPath, UsernameVar)
-
 var routes = utils.Routes{
 	// TRAINERS
 
@@ -74,7 +47,7 @@ var routes = utils.Routes{
 	utils.Route{
 		Name:        UpdateTrainerInfo,
 		Method:      PUT,
-		Pattern:     UpdateTrainerStatsRoute,
+		Pattern:     api.UpdateTrainerStatsRoute,
 		HandlerFunc: HandleUpdateTrainerInfo,
 	},
 
@@ -88,7 +61,7 @@ var routes = utils.Routes{
 	utils.Route{
 		Name:        GetTrainerByUsernameName,
 		Method:      GET,
-		Pattern:     GetTrainerByUsernameRoute,
+		Pattern:     api.GetTrainerByUsernameRoute,
 		HandlerFunc: GetTrainerByUsername,
 	},
 
@@ -97,14 +70,14 @@ var routes = utils.Routes{
 	utils.Route{
 		Name:        AddPokemonName,
 		Method:      POST,
-		Pattern:     AddPokemonRoute,
+		Pattern:     api.AddPokemonRoute,
 		HandlerFunc: AddPokemonToTrainer,
 	},
 
 	utils.Route{
 		Name:        RemovePokemonName,
 		Method:      DELETE,
-		Pattern:     RemovePokemonRoute,
+		Pattern:     api.RemovePokemonRoute,
 		HandlerFunc: RemovePokemonFromTrainer,
 	},
 
@@ -113,14 +86,14 @@ var routes = utils.Routes{
 	utils.Route{
 		Name:        AddItemToBagName,
 		Method:      POST,
-		Pattern:     AddItemToBagRoute,
+		Pattern:     api.AddItemToBagRoute,
 		HandlerFunc: AddItemsToTrainer,
 	},
 
 	utils.Route{
 		Name:        RemoveItemFromBagName,
 		Method:      DELETE,
-		Pattern:     RemoveItemFromBagRoute,
+		Pattern:     api.RemoveItemFromBagRoute,
 		HandlerFunc: RemoveItemsFromTrainer,
 	},
 
@@ -129,49 +102,49 @@ var routes = utils.Routes{
 	utils.Route{
 		Name:        GenerateAllTokens,
 		Method:      GET,
-		Pattern:     GenerateAllTokensRoute,
+		Pattern:     api.GenerateAllTokensRoute,
 		HandlerFunc: HandleGenerateAllTokens,
 	},
 
 	utils.Route{
 		Name:        GenerateTrainerStatsToken,
 		Method:      GET,
-		Pattern:     GenerateTrainerStatsTokenRoute,
+		Pattern:     api.GenerateTrainerStatsTokenRoute,
 		HandlerFunc: HandleGenerateTrainerStatsToken,
 	},
 
 	utils.Route{
 		Name:        GeneratePokemonsToken,
 		Method:      GET,
-		Pattern:     GeneratePokemonsTokenRoute,
+		Pattern:     api.GeneratePokemonsTokenRoute,
 		HandlerFunc: HandleGeneratePokemonsToken,
 	},
 
 	utils.Route{
 		Name:        GenerateItemsToken,
 		Method:      GET,
-		Pattern:     GenerateItemsTokenRoute,
+		Pattern:     api.GenerateItemsTokenRoute,
 		HandlerFunc: HandleGenerateItemsToken,
 	},
 
 	utils.Route{
 		Name:        VerifyItems,
 		Method:      POST,
-		Pattern:     VerifyItemsRoute,
+		Pattern:     api.VerifyItemsRoute,
 		HandlerFunc: HandleVerifyTrainerItems,
 	},
 
 	utils.Route{
 		Name:        VerifyTrainerStats,
 		Method:      POST,
-		Pattern:     VerifyTrainerStatsRoute,
+		Pattern:     api.VerifyTrainerStatsRoute,
 		HandlerFunc: HandleVerifyTrainerStats,
 	},
 
 	utils.Route{
 		Name:        VerifyPokemon,
 		Method:      POST,
-		Pattern:     VerifyPokemonRoute,
+		Pattern:     api.VerifyPokemonRoute,
 		HandlerFunc: HandleVerifyTrainerPokemon,
 	},
 }
