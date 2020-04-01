@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/NOVAPokemon/utils"
+	"github.com/NOVAPokemon/utils/api"
 	"github.com/NOVAPokemon/utils/cookies"
 	trainerdb "github.com/NOVAPokemon/utils/database/trainer"
 	"github.com/gorilla/mux"
@@ -51,7 +52,7 @@ func AddTrainer(w http.ResponseWriter, r *http.Request) {
 
 func HandleUpdateTrainerInfo(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	trainerUsername := vars[UsernameVar]
+	trainerUsername := vars[api.UsernameVar]
 	var trainerStats = &utils.TrainerStats{}
 
 	err := json.NewDecoder(r.Body).Decode(trainerStats)
@@ -105,7 +106,7 @@ func GetAllTrainers(w http.ResponseWriter, _ *http.Request) {
 
 func GetTrainerByUsername(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	trainerUsername := vars[UsernameVar]
+	trainerUsername := vars[api.UsernameVar]
 
 	trainer, err := trainerdb.GetTrainerByUsername(trainerUsername)
 
@@ -128,7 +129,7 @@ func GetTrainerByUsername(w http.ResponseWriter, r *http.Request) {
 
 func AddPokemonToTrainer(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	trainerUsername := vars[UsernameVar]
+	trainerUsername := vars[api.UsernameVar]
 
 	var pokemon = &utils.Pokemon{}
 
@@ -160,8 +161,8 @@ func AddPokemonToTrainer(w http.ResponseWriter, r *http.Request) {
 
 func RemovePokemonFromTrainer(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	trainerUsername := vars[UsernameVar]
-	pokemonId, err := primitive.ObjectIDFromHex(vars[PokemonIdVar])
+	trainerUsername := vars[api.UsernameVar]
+	pokemonId, err := primitive.ObjectIDFromHex(vars[api.PokemonIdVar])
 
 	if err != nil {
 		handleError(err, w)
@@ -179,7 +180,7 @@ func RemovePokemonFromTrainer(w http.ResponseWriter, r *http.Request) {
 
 func AddItemsToTrainer(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	trainerUsername := vars[UsernameVar]
+	trainerUsername := vars[api.UsernameVar]
 
 	var item = &utils.Item{}
 
@@ -212,10 +213,10 @@ func AddItemsToTrainer(w http.ResponseWriter, r *http.Request) {
 
 func RemoveItemsFromTrainer(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	trainerUsername := vars[UsernameVar]
+	trainerUsername := vars[api.UsernameVar]
 	var itemIds []primitive.ObjectID
 
-	for _, itemIdStr := range strings.Split(vars[ItemIdVar], ",") {
+	for _, itemIdStr := range strings.Split(vars[api.ItemIdVar], ",") {
 		itemId, err := primitive.ObjectIDFromHex(itemIdStr)
 
 		if err != nil {
@@ -249,7 +250,7 @@ func RemoveItemsFromTrainer(w http.ResponseWriter, r *http.Request) {
 func HandleVerifyTrainerPokemon(w http.ResponseWriter, r *http.Request) {
 
 	token, err := cookies.ExtractAndVerifyAuthToken(&w, r, serviceName)
-	pokemonId := mux.Vars(r)[PokemonIdVar]
+	pokemonId := mux.Vars(r)[api.PokemonIdVar]
 
 	if err != nil {
 		return
