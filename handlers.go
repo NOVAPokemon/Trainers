@@ -246,8 +246,11 @@ func RemoveItemsFromTrainer(w http.ResponseWriter, r *http.Request) {
 
 // receives a POST request with a hash of the pokemons stats
 // returns true or false depending on if they are up to date
-func HandleVerifyTrainerPokemons(w http.ResponseWriter, r *http.Request) {
+func HandleVerifyTrainerPokemon(w http.ResponseWriter, r *http.Request) {
+
 	token, err := cookies.ExtractAndVerifyAuthToken(&w, r, serviceName)
+	pokemonId := mux.Vars(r)[PokemonIdVar]
+
 	if err != nil {
 		return
 	}
@@ -267,18 +270,23 @@ func HandleVerifyTrainerPokemons(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	for pokemonId, pokemon := range trainer.Pokemons {
-		marshaled, _ := json.Marshal(pokemon)
-		currHash := md5.Sum(marshaled)
-		if reflect.DeepEqual(currHash, pokemonHashes[pokemonId]) {
-			w.WriteHeader(200)
-			toSend, _ := json.Marshal(true)
-			_, _ = w.Write(toSend)
-		} else {
-			w.WriteHeader(200)
-			toSend, _ := json.Marshal(false)
-			_, _ = w.Write(toSend)
-		}
+	pokemon, ok := trainer.Pokemons[pokemonId]
+
+	if !ok {
+		handleError(trainerdb.ErrPokemonNotFound, w)
+		return
+	}
+
+	marshaled, _ := json.Marshal(pokemon)
+	currHash := md5.Sum(marshaled)
+	if reflect.DeepEqual(currHash, pokemonHashes[pokemonId]) {
+		w.WriteHeader(200)
+		toSend, _ := json.Marshal(true)
+		_, _ = w.Write(toSend)
+	} else {
+		w.WriteHeader(200)
+		toSend, _ := json.Marshal(false)
+		_, _ = w.Write(toSend)
 	}
 }
 
@@ -299,8 +307,8 @@ func HandleVerifyTrainerStats(w http.ResponseWriter, r *http.Request) {
 	}
 
 	marshaled, _ := json.Marshal(trainer.Stats)
-	currHash := md5.Sum(marshaled)
-	if reflect.DeepEqual(currHash, hash) {
+	pokemonHash := md5.Sum(marshaled)
+	if reflect.DeepEqual(pokemonHash, hash) {
 		w.WriteHeader(200)
 		toSend, _ := json.Marshal(true)
 		_, _ = w.Write(toSend)
@@ -356,7 +364,7 @@ func HandleGenerateAllTokens(w http.ResponseWriter, r *http.Request) {
 	}
 
 	cookies.SetItemsCookie(trainer.Items, w)
-	cookies.SetPokemonsCookie(trainer.Pokemons, w)
+	cookies.SetPokemonsCookies(trainer.Pokemons, w)
 	cookies.SetTrainerStatsCookie(trainer.Stats, w)
 }
 
@@ -385,7 +393,7 @@ func HandleGeneratePokemonsToken(w http.ResponseWriter, r *http.Request) {
 		handleError(err, w)
 		return
 	}
-	cookies.SetPokemonsCookie(trainer.Pokemons, w)
+	cookies.SetPokemonsCookies(trainer.Pokemons, w)
 }
 
 func HandleGenerateItemsToken(w http.ResponseWriter, r *http.Request) {
