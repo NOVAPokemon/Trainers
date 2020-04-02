@@ -22,6 +22,8 @@ const serviceName = "Trainers"
 var decodeError = errors.New("an error occurred decoding the supplied resource")
 
 func AddTrainer(w http.ResponseWriter, r *http.Request) {
+
+	log.Infof("Request to add trainer")
 	var trainer = &utils.Trainer{}
 	err := json.NewDecoder(r.Body).Decode(trainer)
 
@@ -30,6 +32,7 @@ func AddTrainer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	log.Infof("Adding trainer: %+v", trainer)
 	_, err = trainerdb.AddTrainer(*trainer)
 
 	if err != nil {
@@ -37,7 +40,7 @@ func AddTrainer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	toSend, err := json.Marshal(trainer)
+	toSend, err := json.Marshal(*trainer)
 
 	if err != nil {
 		handleError(err, w)
@@ -256,8 +259,8 @@ func HandleVerifyTrainerPokemon(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var pokemonHashes map[string][]byte
-	err = json.NewDecoder(r.Body).Decode(pokemonHashes)
+	var receivedHash []byte
+	err = json.NewDecoder(r.Body).Decode(receivedHash)
 
 	if err != nil {
 		handleError(decodeError, w)
@@ -279,8 +282,11 @@ func HandleVerifyTrainerPokemon(w http.ResponseWriter, r *http.Request) {
 	}
 
 	marshaled, _ := json.Marshal(pokemon)
-	currHash := md5.Sum(marshaled)
-	if reflect.DeepEqual(currHash, pokemonHashes[pokemonId]) {
+	currPokemonHash := md5.Sum(marshaled)
+	hashTemp := md5.Sum(receivedHash)
+	finalHash := hashTemp[:]
+
+	if reflect.DeepEqual(currPokemonHash, finalHash) {
 		w.WriteHeader(200)
 		toSend, _ := json.Marshal(true)
 		_, _ = w.Write(toSend)
@@ -299,7 +305,13 @@ func HandleVerifyTrainerStats(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	hash := r.Body
+	var receivedHash []byte
+	err = json.NewDecoder(r.Body).Decode(&receivedHash)
+	if err != nil {
+		log.Error(err)
+		return
+	}
+
 	trainer, err := trainerdb.GetTrainerByUsername(token.Username)
 
 	if err != nil {
@@ -308,8 +320,11 @@ func HandleVerifyTrainerStats(w http.ResponseWriter, r *http.Request) {
 	}
 
 	marshaled, _ := json.Marshal(trainer.Stats)
-	pokemonHash := md5.Sum(marshaled)
-	if reflect.DeepEqual(pokemonHash, hash) {
+	currStatsHash := md5.Sum(marshaled)
+	hashTemp := md5.Sum(receivedHash)
+	finalHash := hashTemp[:]
+
+	if reflect.DeepEqual(finalHash, currStatsHash) {
 		w.WriteHeader(200)
 		toSend, _ := json.Marshal(true)
 		_, _ = w.Write(toSend)
