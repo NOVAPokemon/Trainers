@@ -145,6 +145,6 @@ var routes = utils.Routes{
 		Name:        VerifyPokemon,
 		Method:      POST,
 		Pattern:     api.VerifyPokemonRoute,
-		HandlerFunc: HandleVerifyTrainerPokemon,
+		HandlerFunc: HandleVerifyTrainerPokemons,
 	},
 }

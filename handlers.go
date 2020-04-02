@@ -7,8 +7,8 @@ import (
 	"errors"
 	"github.com/NOVAPokemon/utils"
 	"github.com/NOVAPokemon/utils/api"
-	"github.com/NOVAPokemon/utils/cookies"
 	trainerdb "github.com/NOVAPokemon/utils/database/trainer"
+	"github.com/NOVAPokemon/utils/tokens"
 	"github.com/gorilla/mux"
 	log "github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -250,17 +250,16 @@ func RemoveItemsFromTrainer(w http.ResponseWriter, r *http.Request) {
 
 // receives a POST request with a hash of the pokemons stats
 // returns true or false depending on if they are up to date
-func HandleVerifyTrainerPokemon(w http.ResponseWriter, r *http.Request) {
+func HandleVerifyTrainerPokemons(w http.ResponseWriter, r *http.Request) {
 
-	token, err := cookies.ExtractAndVerifyAuthToken(&w, r, serviceName)
-	pokemonId := mux.Vars(r)[api.PokemonIdVar]
+	token, err := tokens.ExtractAndVerifyAuthToken(r.Header)
 
 	if err != nil {
 		return
 	}
 
-	var receivedHash []byte
-	err = json.NewDecoder(r.Body).Decode(receivedHash)
+	var receivedHashes map[string][]byte
+	err = json.NewDecoder(r.Body).Decode(&receivedHashes)
 
 	if err != nil {
 		handleError(decodeError, w)
@@ -274,33 +273,36 @@ func HandleVerifyTrainerPokemon(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	pokemon, ok := trainer.Pokemons[pokemonId]
+	for pokemonId, pokemonHash := range receivedHashes {
+		pokemon, ok := trainer.Pokemons[pokemonId]
 
-	if !ok {
-		handleError(trainerdb.ErrPokemonNotFound, w)
-		return
-	}
+		if !ok {
+			w.WriteHeader(200)
+			toSend, _ := json.Marshal(false)
+			_, _ = w.Write(toSend)
+		}
 
-	marshaled, _ := json.Marshal(pokemon)
-	currPokemonHash := md5.Sum(marshaled)
-	hashTemp := md5.Sum(receivedHash)
-	finalHash := hashTemp[:]
+		marshaled, _ := json.Marshal(pokemon)
+		currPokemonHash := md5.Sum(marshaled)
+		hashTemp := md5.Sum(pokemonHash)
+		finalHash := hashTemp[:]
 
-	if reflect.DeepEqual(currPokemonHash, finalHash) {
-		w.WriteHeader(200)
-		toSend, _ := json.Marshal(true)
-		_, _ = w.Write(toSend)
-	} else {
-		w.WriteHeader(200)
-		toSend, _ := json.Marshal(false)
-		_, _ = w.Write(toSend)
+		if reflect.DeepEqual(currPokemonHash, finalHash) {
+			w.WriteHeader(200)
+			toSend, _ := json.Marshal(true)
+			_, _ = w.Write(toSend)
+		} else {
+			w.WriteHeader(200)
+			toSend, _ := json.Marshal(false)
+			_, _ = w.Write(toSend)
+		}
 	}
 }
 
 // receives a POST request with a hash of the trainer stats
 // returns true or false depending on if they are up to date
 func HandleVerifyTrainerStats(w http.ResponseWriter, r *http.Request) {
-	token, err := cookies.ExtractAndVerifyAuthToken(&w, r, serviceName)
+	token, err := tokens.ExtractAndVerifyAuthToken(r.Header)
 	if err != nil {
 		return
 	}
@@ -339,7 +341,7 @@ func HandleVerifyTrainerStats(w http.ResponseWriter, r *http.Request) {
 // receives a POST request with a hash of the trainer items
 // returns true or false depending on if they are up to date
 func HandleVerifyTrainerItems(w http.ResponseWriter, r *http.Request) {
-	token, err := cookies.ExtractAndVerifyAuthToken(&w, r, serviceName)
+	token, err := tokens.ExtractAndVerifyAuthToken(r.Header)
 	if err != nil {
 		return
 	}
@@ -379,7 +381,7 @@ func HandleVerifyTrainerItems(w http.ResponseWriter, r *http.Request) {
 }
 
 func HandleGenerateAllTokens(w http.ResponseWriter, r *http.Request) {
-	token, err := cookies.ExtractAndVerifyAuthToken(&w, r, serviceName)
+	token, err := tokens.ExtractAndVerifyAuthToken(r.Header)
 	if err != nil {
 		return
 	}
@@ -392,13 +394,13 @@ func HandleGenerateAllTokens(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cookies.SetItemsCookie(trainer.Items, w)
-	cookies.SetPokemonsCookies(trainer.Pokemons, w)
-	cookies.SetTrainerStatsCookie(trainer.Stats, w)
+	tokens.AddItemsToken(trainer.Items, w.Header())
+	tokens.AddPokemonsTokens(trainer.Pokemons, w.Header())
+	tokens.AddTrainerStatsToken(trainer.Stats, w.Header())
 }
 
 func HandleGenerateTrainerStatsToken(w http.ResponseWriter, r *http.Request) {
-	token, err := cookies.ExtractAndVerifyAuthToken(&w, r, serviceName)
+	token, err := tokens.ExtractAndVerifyAuthToken(r.Header)
 	if err != nil {
 		return
 	}
@@ -408,11 +410,11 @@ func HandleGenerateTrainerStatsToken(w http.ResponseWriter, r *http.Request) {
 		handleError(err, w)
 		return
 	}
-	cookies.SetTrainerStatsCookie(trainer.Stats, w)
+	tokens.AddTrainerStatsToken(trainer.Stats, w.Header())
 }
 
 func HandleGeneratePokemonsToken(w http.ResponseWriter, r *http.Request) {
-	token, err := cookies.ExtractAndVerifyAuthToken(&w, r, serviceName)
+	token, err := tokens.ExtractAndVerifyAuthToken(r.Header)
 	if err != nil {
 		return
 	}
@@ -422,11 +424,11 @@ func HandleGeneratePokemonsToken(w http.ResponseWriter, r *http.Request) {
 		handleError(err, w)
 		return
 	}
-	cookies.SetPokemonsCookies(trainer.Pokemons, w)
+	tokens.AddPokemonsTokens(trainer.Pokemons, w.Header())
 }
 
 func HandleGenerateItemsToken(w http.ResponseWriter, r *http.Request) {
-	token, err := cookies.ExtractAndVerifyAuthToken(&w, r, serviceName)
+	token, err := tokens.ExtractAndVerifyAuthToken(r.Header)
 	if err != nil {
 		return
 	}
@@ -436,7 +438,7 @@ func HandleGenerateItemsToken(w http.ResponseWriter, r *http.Request) {
 		handleError(err, w)
 		return
 	}
-	cookies.SetItemsCookie(trainer.Items, w)
+	tokens.AddItemsToken(trainer.Items, w.Header())
 }
 
 func handleError(err error, w http.ResponseWriter) {
