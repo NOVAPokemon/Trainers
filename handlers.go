@@ -13,7 +13,6 @@ import (
 	log "github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"net/http"
-	"reflect"
 	"strings"
 )
 
@@ -252,9 +251,12 @@ func RemoveItemsFromTrainer(w http.ResponseWriter, r *http.Request) {
 // returns true or false depending on if they are up to date
 func HandleVerifyTrainerPokemons(w http.ResponseWriter, r *http.Request) {
 
+	log.Info("Verify Pokemons request")
+
 	token, err := tokens.ExtractAndVerifyAuthToken(r.Header)
 
 	if err != nil {
+		http.Error(w, "no auth token", http.StatusUnauthorized)
 		return
 	}
 
@@ -273,37 +275,41 @@ func HandleVerifyTrainerPokemons(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	for pokemonId, pokemonHash := range receivedHashes {
+	for pokemonId, currHash := range receivedHashes {
 		pokemon, ok := trainer.Pokemons[pokemonId]
 
 		if !ok {
+			log.Info("Denied")
 			w.WriteHeader(200)
 			toSend, _ := json.Marshal(false)
 			_, _ = w.Write(toSend)
 		}
 
-		marshaled, _ := json.Marshal(pokemon)
-		currPokemonHash := md5.Sum(marshaled)
-		hashTemp := md5.Sum(pokemonHash)
-		finalHash := hashTemp[:]
+		pokemonBytes, _ := json.Marshal(pokemon)
+		pokemonBytesTemp := md5.Sum(pokemonBytes)
+		pokemonHash := pokemonBytesTemp[:]
 
-		if reflect.DeepEqual(currPokemonHash, finalHash) {
-			w.WriteHeader(200)
-			toSend, _ := json.Marshal(true)
-			_, _ = w.Write(toSend)
-		} else {
+		if !bytes.Equal(pokemonHash, currHash) {
+			log.Info("Denied")
 			w.WriteHeader(200)
 			toSend, _ := json.Marshal(false)
 			_, _ = w.Write(toSend)
+			return
 		}
 	}
+	log.Info("Accepted")
+	w.WriteHeader(200)
+	toSend, _ := json.Marshal(true)
+	_, _ = w.Write(toSend)
 }
 
 // receives a POST request with a hash of the trainer stats
 // returns true or false depending on if they are up to date
 func HandleVerifyTrainerStats(w http.ResponseWriter, r *http.Request) {
+	log.Info("Verify Trainer Stats requet")
 	token, err := tokens.ExtractAndVerifyAuthToken(r.Header)
 	if err != nil {
+		handleError(err, w)
 		return
 	}
 
@@ -321,12 +327,11 @@ func HandleVerifyTrainerStats(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	marshaled, _ := json.Marshal(trainer.Stats)
-	currStatsHash := md5.Sum(marshaled)
-	hashTemp := md5.Sum(receivedHash)
-	finalHash := hashTemp[:]
+	statsBytes, _ := json.Marshal(trainer.Stats)
+	statsBytesTemp := md5.Sum(statsBytes)
+	statsHash := statsBytesTemp[:]
 
-	if reflect.DeepEqual(finalHash, currStatsHash) {
+	if bytes.Equal(statsHash, receivedHash) {
 		w.WriteHeader(200)
 		toSend, _ := json.Marshal(true)
 		_, _ = w.Write(toSend)
@@ -341,8 +346,10 @@ func HandleVerifyTrainerStats(w http.ResponseWriter, r *http.Request) {
 // receives a POST request with a hash of the trainer items
 // returns true or false depending on if they are up to date
 func HandleVerifyTrainerItems(w http.ResponseWriter, r *http.Request) {
+	log.Info("Verify items requet")
 	token, err := tokens.ExtractAndVerifyAuthToken(r.Header)
 	if err != nil {
+		handleError(err, w)
 		return
 	}
 
@@ -373,6 +380,7 @@ func HandleVerifyTrainerItems(w http.ResponseWriter, r *http.Request) {
 		_, _ = w.Write(toSend)
 		log.Info("verify items: ", true)
 	} else {
+
 		w.WriteHeader(200)
 		toSend, _ := json.Marshal(false)
 		_, _ = w.Write(toSend)
@@ -381,9 +389,11 @@ func HandleVerifyTrainerItems(w http.ResponseWriter, r *http.Request) {
 }
 
 func HandleGenerateAllTokens(w http.ResponseWriter, r *http.Request) {
+	log.Info("Generate all tokens requet")
 	token, err := tokens.ExtractAndVerifyAuthToken(r.Header)
 	if err != nil {
 		log.Error(err)
+		handleError(err, w)
 		return
 	}
 
@@ -403,6 +413,7 @@ func HandleGenerateAllTokens(w http.ResponseWriter, r *http.Request) {
 func HandleGenerateTrainerStatsToken(w http.ResponseWriter, r *http.Request) {
 	token, err := tokens.ExtractAndVerifyAuthToken(r.Header)
 	if err != nil {
+		handleError(err, w)
 		return
 	}
 
@@ -417,6 +428,7 @@ func HandleGenerateTrainerStatsToken(w http.ResponseWriter, r *http.Request) {
 func HandleGeneratePokemonsToken(w http.ResponseWriter, r *http.Request) {
 	token, err := tokens.ExtractAndVerifyAuthToken(r.Header)
 	if err != nil {
+		handleError(err, w)
 		return
 	}
 
@@ -465,6 +477,6 @@ func handleError(err error, w http.ResponseWriter) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 
 	default:
-		http.Error(w, "An error has occurred", http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 }
