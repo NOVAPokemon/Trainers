@@ -383,6 +383,7 @@ func HandleVerifyTrainerItems(w http.ResponseWriter, r *http.Request) {
 func HandleGenerateAllTokens(w http.ResponseWriter, r *http.Request) {
 	token, err := tokens.ExtractAndVerifyAuthToken(r.Header)
 	if err != nil {
+		log.Error(err)
 		return
 	}
 
