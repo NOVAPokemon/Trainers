@@ -306,7 +306,7 @@ func HandleVerifyTrainerPokemons(w http.ResponseWriter, r *http.Request) {
 // receives a POST request with a hash of the trainer stats
 // returns true or false depending on if they are up to date
 func HandleVerifyTrainerStats(w http.ResponseWriter, r *http.Request) {
-	log.Info("Verify Trainer Stats requet")
+	log.Info("Verify Trainer Stats request")
 	token, err := tokens.ExtractAndVerifyAuthToken(r.Header)
 	if err != nil {
 		handleError(err, w)
@@ -346,7 +346,7 @@ func HandleVerifyTrainerStats(w http.ResponseWriter, r *http.Request) {
 // receives a POST request with a hash of the trainer items
 // returns true or false depending on if they are up to date
 func HandleVerifyTrainerItems(w http.ResponseWriter, r *http.Request) {
-	log.Info("Verify items requet")
+	log.Info("Verify items request")
 	token, err := tokens.ExtractAndVerifyAuthToken(r.Header)
 	if err != nil {
 		handleError(err, w)
@@ -371,6 +371,7 @@ func HandleVerifyTrainerItems(w http.ResponseWriter, r *http.Request) {
 	itemsHashTemp := md5.Sum(itemsBytes)
 	itemsHash := itemsHashTemp[:]
 
+	log.Info(token.Username)
 	log.Info(itemsHash)
 	log.Info(receivedHash)
 
@@ -389,7 +390,7 @@ func HandleVerifyTrainerItems(w http.ResponseWriter, r *http.Request) {
 }
 
 func HandleGenerateAllTokens(w http.ResponseWriter, r *http.Request) {
-	log.Info("Generate all tokens requet")
+	log.Info("Generate all tokens request")
 	token, err := tokens.ExtractAndVerifyAuthToken(r.Header)
 	if err != nil {
 		log.Error(err)
