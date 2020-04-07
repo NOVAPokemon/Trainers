@@ -19,6 +19,7 @@ const UpdateTrainerInfo = "UPDATE_TRAINER_INFO"
 
 // trainer pokemons
 const AddPokemonName = "ADD_POKEMON"
+const UpdatePokemonName = "UPDATE_POKEMON"
 const RemovePokemonName = "REMOVE_POKEMON"
 
 // trainer bag
@@ -72,6 +73,13 @@ var routes = utils.Routes{
 		Method:      POST,
 		Pattern:     api.AddPokemonRoute,
 		HandlerFunc: AddPokemonToTrainer,
+	},
+
+	utils.Route{
+		Name:        UpdatePokemonName,
+		Method:      PUT,
+		Pattern:     api.UpdatePokemonRoute,
+		HandlerFunc: HandleUpdatePokemon,
 	},
 
 	utils.Route{
