@@ -182,25 +182,29 @@ func RemovePokemonFromTrainer(w http.ResponseWriter, r *http.Request) {
 
 func AddItemsToTrainer(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	trainerUsername := vars[api.UsernameVar]
+	_ = vars[api.UsernameVar]
 
-	var item = &utils.Item{}
+	token, err := tokens.ExtractAndVerifyAuthToken(r.Header)
+	if err != nil {
+		log.Error(err)
+		return
+	}
 
-	err := json.NewDecoder(r.Body).Decode(item)
+	var item []*utils.Item
+	err = json.NewDecoder(r.Body).Decode(&item)
+	if err != nil {
+		handleError(err, w)
+		return
+	}
+
+	addedItems, err := trainerdb.AddItemsToTrainer(token.Username, item)
 
 	if err != nil {
 		handleError(err, w)
 		return
 	}
 
-	addedItem, err := trainerdb.AddItemToTrainer(trainerUsername, *item)
-
-	if err != nil {
-		handleError(err, w)
-		return
-	}
-
-	toSend, err := json.Marshal(*addedItem)
+	toSend, err := json.Marshal(addedItems)
 	if err != nil {
 		handleError(err, w)
 		return
@@ -215,9 +219,15 @@ func AddItemsToTrainer(w http.ResponseWriter, r *http.Request) {
 
 func RemoveItemsFromTrainer(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	trainerUsername := vars[api.UsernameVar]
-	var itemIds []primitive.ObjectID
+	_ = vars[api.UsernameVar]
 
+	token, err := tokens.ExtractAndVerifyAuthToken(r.Header)
+	if err != nil {
+		log.Error(err)
+		return
+	}
+
+	var itemIds []primitive.ObjectID
 	for _, itemIdStr := range strings.Split(vars[api.ItemIdVar], ",") {
 		itemId, err := primitive.ObjectIDFromHex(itemIdStr)
 
@@ -228,8 +238,7 @@ func RemoveItemsFromTrainer(w http.ResponseWriter, r *http.Request) {
 		itemIds = append(itemIds, itemId)
 	}
 
-	removedItems, err := trainerdb.RemoveItemsFromTrainer(trainerUsername, itemIds)
-
+	removedItems, err := trainerdb.RemoveItemsFromTrainer(token.Username, itemIds)
 	if err != nil {
 		handleError(err, w)
 		return
