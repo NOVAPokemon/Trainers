@@ -161,6 +161,45 @@ func AddPokemonToTrainer(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func HandleUpdatePokemon(w http.ResponseWriter, r *http.Request) {
+	log.Info("Update pokemon request")
+	vars := mux.Vars(r)
+	trainerUsername := vars[api.UsernameVar]
+	pokemonId, err := primitive.ObjectIDFromHex(vars[api.PokemonIdVar])
+
+	if err != nil {
+		handleError(err, w)
+		return
+	}
+
+	var pokemon = &utils.Pokemon{}
+	err = json.NewDecoder(r.Body).Decode(pokemon)
+	if err != nil {
+		handleError(err, w)
+		return
+	}
+
+	updatedPokemon, err := trainerdb.UpdateTrainerPokemon(trainerUsername, pokemonId, *pokemon)
+
+	if err != nil {
+		handleError(err, w)
+		return
+	}
+
+	toSend, err := json.Marshal(*updatedPokemon)
+
+	if err != nil {
+		handleError(err, w)
+		return
+	}
+	_, err = w.Write(toSend)
+
+	if err != nil {
+		panic(err)
+	}
+
+}
+
 func RemovePokemonFromTrainer(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	trainerUsername := vars[api.UsernameVar]
