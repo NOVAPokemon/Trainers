@@ -56,24 +56,27 @@ func AddTrainer(w http.ResponseWriter, r *http.Request) {
 func HandleUpdateTrainerInfo(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	trainerUsername := vars[api.UsernameVar]
+
+	_, err := tokens.ExtractAndVerifyAuthToken(r.Header)
+	if err != nil {
+		handleError(err, w)
+		return
+	}
+
 	var trainerStats = &utils.TrainerStats{}
-
-	err := json.NewDecoder(r.Body).Decode(trainerStats)
-
+	err = json.NewDecoder(r.Body).Decode(trainerStats)
 	if err != nil {
 		handleError(err, w)
 		return
 	}
 
 	trainerStats, err = trainerdb.UpdateTrainerStats(trainerUsername, *trainerStats)
-
 	if err != nil {
 		handleError(err, w)
 		return
 	}
 
 	toSend, err := json.Marshal(trainerStats)
-
 	if err != nil {
 		handleError(err, w)
 		return
