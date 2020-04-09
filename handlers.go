@@ -489,6 +489,7 @@ func HandleGeneratePokemonsToken(w http.ResponseWriter, r *http.Request) {
 		handleError(err, w)
 		return
 	}
+
 	tokens.AddPokemonsTokens(trainer.Pokemons, w.Header())
 }
 
