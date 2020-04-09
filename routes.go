@@ -26,6 +26,9 @@ const RemovePokemonName = "REMOVE_POKEMON"
 const AddItemToBagName = "ADD_TO_BAG"
 const RemoveItemFromBagName = "REMOVE_FROM_BAG"
 
+//location
+const UpdateRegionName = "UPDATE_REGION"
+
 // tokens
 const VerifyTrainerStats = "VERIFY_STATS"
 const VerifyPokemon = "VERIFY_POKEMONS"
@@ -103,6 +106,15 @@ var routes = utils.Routes{
 		Method:      DELETE,
 		Pattern:     api.RemoveItemFromBagRoute,
 		HandlerFunc: RemoveItemsFromTrainer,
+	},
+
+	// LOCATION
+
+	utils.Route{
+		Name:        UpdateRegionName,
+		Method:      GET,
+		Pattern:     api.UpdateRegionRoute,
+		HandlerFunc: HandleUpdateRegion,
 	},
 
 	// TOKENS

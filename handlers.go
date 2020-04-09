@@ -9,14 +9,20 @@ import (
 	"github.com/NOVAPokemon/utils/api"
 	trainerdb "github.com/NOVAPokemon/utils/database/trainer"
 	"github.com/NOVAPokemon/utils/tokens"
+	"github.com/NOVAPokemon/utils/websockets/location"
 	"github.com/gorilla/mux"
+	"github.com/gorilla/websocket"
 	log "github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"net/http"
 	"strings"
+	"time"
 )
 
-const serviceName = "Trainers"
+var upgrader = websocket.Upgrader{
+	ReadBufferSize:  1024,
+	WriteBufferSize: 1024,
+}
 
 var decodeError = errors.New("an error occurred decoding the supplied resource")
 
@@ -505,6 +511,70 @@ func HandleGenerateItemsToken(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	tokens.AddItemsToken(trainer.Items, w.Header())
+}
+
+func HandleUpdateRegion(w http.ResponseWriter, r *http.Request) {
+	conn, err := upgrader.Upgrade(w, r, nil)
+
+	if err != nil {
+		log.Error(err)
+		w.WriteHeader(401)
+		return
+	}
+
+	authToken, err := tokens.ExtractAndVerifyAuthToken(r.Header)
+
+	if err != nil {
+		w.WriteHeader(401)
+		return
+	}
+	go handleLocationUpdates(authToken.Username, conn)
+}
+
+func handleLocationUpdates(user string, conn *websocket.Conn) {
+	defer conn.Close()
+	conn.SetReadDeadline(time.Now().Add(location.Timeout))
+	conn.SetPongHandler(func(string) error {
+		conn.SetReadDeadline(time.Now().Add(location.Timeout))
+		return nil
+	})
+	var pingTicker = time.NewTicker(location.PingCooldown)
+	inChan := make(chan utils.Location)
+	finish := make(chan *struct{})
+	go handleLocationMessages(conn, inChan, finish)
+	for {
+		select {
+		case <-pingTicker.C:
+			if err := conn.WriteMessage(websocket.PingMessage, []byte{}); err != nil {
+				return
+			}
+		case loc := <-inChan:
+			log.Infof("User %s updated region to: (%s, lat:%f, lon:%f)", user, loc.RegionName, loc.Latitude, loc.Longitude)
+			_, err := trainerdb.UpdateUserLocation(user, loc)
+			if err != nil {
+				log.Error(err)
+				return
+			}
+			conn.SetReadDeadline(time.Now().Add(location.Timeout))
+		case <-finish:
+			log.Warn("Stopped tracking location")
+		}
+
+	}
+}
+
+func handleLocationMessages(conn *websocket.Conn, channel chan utils.Location, finished chan *struct{}) {
+	for {
+		loc := utils.Location{}
+		err := conn.ReadJSON(&loc)
+		if err != nil {
+			log.Printf("error: %v", err)
+			finished <- nil
+			return
+		} else {
+			channel <- loc
+		}
+	}
 }
 
 func handleError(err error, w http.ResponseWriter) {

@@ -9,6 +9,7 @@ import (
 	"time"
 )
 
+
 const host = utils.Host
 const port = utils.TrainersPort
 
