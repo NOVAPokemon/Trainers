@@ -289,7 +289,6 @@ func AddItemsToTrainer(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		panic(err)
 	}
-
 }
 
 func RemoveItemsFromTrainer(w http.ResponseWriter, r *http.Request) {
