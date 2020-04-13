@@ -8,6 +8,8 @@ import (
 	"github.com/NOVAPokemon/utils"
 	"github.com/NOVAPokemon/utils/api"
 	trainerdb "github.com/NOVAPokemon/utils/database/trainer"
+	"github.com/NOVAPokemon/utils/items"
+	"github.com/NOVAPokemon/utils/pokemons"
 	"github.com/NOVAPokemon/utils/tokens"
 	"github.com/NOVAPokemon/utils/websockets/location"
 	"github.com/gorilla/mux"
@@ -142,7 +144,7 @@ func AddPokemonToTrainer(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	trainerUsername := vars[api.UsernameVar]
 
-	var pokemon = &utils.Pokemon{}
+	var pokemon = &pokemons.Pokemon{}
 
 	err := json.NewDecoder(r.Body).Decode(pokemon)
 
@@ -181,7 +183,7 @@ func HandleUpdatePokemon(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var pokemon = &utils.Pokemon{}
+	var pokemon = &pokemons.Pokemon{}
 	err = json.NewDecoder(r.Body).Decode(pokemon)
 	if err != nil {
 		handleError(err, w)
@@ -238,7 +240,7 @@ func AddItemsToTrainer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var item []*utils.Item
+	var item []*items.Item
 	err = json.NewDecoder(r.Body).Decode(&item)
 	if err != nil {
 		handleError(err, w)
