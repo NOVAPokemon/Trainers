@@ -8,6 +8,7 @@ import (
 	"github.com/NOVAPokemon/utils"
 	"github.com/NOVAPokemon/utils/api"
 	trainerdb "github.com/NOVAPokemon/utils/database/trainer"
+	"github.com/NOVAPokemon/utils/experience"
 	"github.com/NOVAPokemon/utils/tokens"
 	"github.com/NOVAPokemon/utils/websockets/location"
 	"github.com/gorilla/mux"
@@ -25,74 +26,6 @@ var upgrader = websocket.Upgrader{
 }
 
 var decodeError = errors.New("an error occurred decoding the supplied resource")
-
-func AddTrainer(w http.ResponseWriter, r *http.Request) {
-
-	log.Infof("Request to add trainer")
-	var trainer = &utils.Trainer{}
-	err := json.NewDecoder(r.Body).Decode(trainer)
-
-	if err != nil {
-		handleError(decodeError, w)
-		return
-	}
-
-	log.Infof("Adding trainer: %+v", trainer)
-	_, err = trainerdb.AddTrainer(*trainer)
-
-	if err != nil {
-		handleError(err, w)
-		return
-	}
-
-	toSend, err := json.Marshal(*trainer)
-
-	if err != nil {
-		handleError(err, w)
-		return
-	}
-	_, err = w.Write(toSend)
-
-	if err != nil {
-		panic(err)
-	}
-
-}
-
-func HandleUpdateTrainerInfo(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	trainerUsername := vars[api.UsernameVar]
-
-	_, err := tokens.ExtractAndVerifyAuthToken(r.Header)
-	if err != nil {
-		handleError(err, w)
-		return
-	}
-
-	var trainerStats = &utils.TrainerStats{}
-	err = json.NewDecoder(r.Body).Decode(trainerStats)
-	if err != nil {
-		handleError(err, w)
-		return
-	}
-
-	trainerStats, err = trainerdb.UpdateTrainerStats(trainerUsername, *trainerStats)
-	if err != nil {
-		handleError(err, w)
-		return
-	}
-
-	toSend, err := json.Marshal(trainerStats)
-	if err != nil {
-		handleError(err, w)
-		return
-	}
-	_, err = w.Write(toSend)
-
-	if err != nil {
-		panic(err)
-	}
-}
 
 func GetAllTrainers(w http.ResponseWriter, _ *http.Request) {
 	trainers, err := trainerdb.GetAllTrainers()
@@ -138,31 +71,105 @@ func GetTrainerByUsername(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func AddTrainer(w http.ResponseWriter, r *http.Request) {
+
+	log.Infof("Request to add trainer")
+	var trainer = utils.Trainer{}
+	err := json.NewDecoder(r.Body).Decode(&trainer)
+
+	if err != nil {
+		handleError(decodeError, w)
+		return
+	}
+
+	log.Infof("Adding trainer: %+v", trainer)
+	_, err = trainerdb.AddTrainer(trainer)
+
+	if err != nil {
+		handleError(err, w)
+		return
+	}
+
+	toSend, err := json.Marshal(trainer)
+
+	if err != nil {
+		handleError(err, w)
+		return
+	}
+
+	_, err = w.Write(toSend)
+
+	if err != nil {
+		panic(err)
+	}
+
+}
+
+func HandleUpdateTrainerInfo(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	trainerUsername := vars[api.UsernameVar]
+
+	_, err := tokens.ExtractAndVerifyAuthToken(r.Header)
+	if err != nil {
+		handleError(err, w)
+		return
+	}
+
+	var trainerStats = utils.TrainerStats{}
+	err = json.NewDecoder(r.Body).Decode(&trainerStats)
+	if err != nil {
+		handleError(err, w)
+		return
+	}
+
+	trainerStats.Level = experience.CalculateLevel(trainerStats.XP)
+	updatedTrainerStats, err := trainerdb.UpdateTrainerStats(trainerUsername, trainerStats)
+	if err != nil {
+		handleError(err, w)
+		return
+	}
+
+	toSend, err := json.Marshal(trainerStats)
+	if err != nil {
+		handleError(err, w)
+		return
+	}
+
+	tokens.AddTrainerStatsToken(*updatedTrainerStats, w.Header())
+	_, err = w.Write(toSend)
+
+	if err != nil {
+		panic(err)
+	}
+}
+
 func AddPokemonToTrainer(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	trainerUsername := vars[api.UsernameVar]
 
-	var pokemon = &utils.Pokemon{}
+	var pokemon = utils.Pokemon{}
 
-	err := json.NewDecoder(r.Body).Decode(pokemon)
-
-	if err != nil {
-		handleError(err, w)
-		return
-	}
-
-	pokemon, err = trainerdb.AddPokemonToTrainer(trainerUsername, *pokemon)
+	err := json.NewDecoder(r.Body).Decode(&pokemon)
 
 	if err != nil {
 		handleError(err, w)
 		return
 	}
 
-	toSend, err := json.Marshal(*pokemon)
+	pokemons, err := trainerdb.AddPokemonToTrainer(trainerUsername, pokemon)
+
 	if err != nil {
 		handleError(err, w)
 		return
 	}
+
+	toSend, err := json.Marshal(pokemons)
+	if err != nil {
+		handleError(err, w)
+		return
+	}
+
+	tokens.AddPokemonsTokens(pokemons, w.Header())
 	_, err = w.Write(toSend)
 
 	if err != nil {
@@ -181,27 +188,30 @@ func HandleUpdatePokemon(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var pokemon = &utils.Pokemon{}
-	err = json.NewDecoder(r.Body).Decode(pokemon)
+	var pokemon = utils.Pokemon{}
+	err = json.NewDecoder(r.Body).Decode(&pokemon)
 	if err != nil {
 		handleError(err, w)
 		return
 	}
 
-	updatedPokemon, err := trainerdb.UpdateTrainerPokemon(trainerUsername, pokemonId, *pokemon)
+	pokemon.Level = experience.CalculateLevel(pokemon.XP)
+	pokemons, err := trainerdb.UpdateTrainerPokemon(trainerUsername, pokemonId, pokemon)
 
 	if err != nil {
 		handleError(err, w)
 		return
 	}
 
-	toSend, err := json.Marshal(*updatedPokemon)
+	marshaledPokemons, err := json.Marshal(pokemons)
 
 	if err != nil {
 		handleError(err, w)
 		return
 	}
-	_, err = w.Write(toSend)
+
+	tokens.AddPokemonsTokens(pokemons, w.Header())
+	_, err = w.Write(marshaledPokemons)
 
 	if err != nil {
 		panic(err)
@@ -219,11 +229,25 @@ func RemovePokemonFromTrainer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = trainerdb.RemovePokemonFromTrainer(trainerUsername, pokemonId)
+	pokemons, err := trainerdb.RemovePokemonFromTrainer(trainerUsername, pokemonId)
 
 	if err != nil {
 		handleError(err, w)
 		return
+	}
+
+	marshaledPokemons, err := json.Marshal(pokemons)
+
+	if err != nil {
+		handleError(err, w)
+		return
+	}
+
+	tokens.AddPokemonsTokens(pokemons, w.Header())
+	_, err = w.Write(marshaledPokemons)
+
+	if err != nil {
+		panic(err)
 	}
 
 }
@@ -238,25 +262,26 @@ func AddItemsToTrainer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var item []*utils.Item
+	var item []utils.Item
 	err = json.NewDecoder(r.Body).Decode(&item)
 	if err != nil {
 		handleError(err, w)
 		return
 	}
 
-	addedItems, err := trainerdb.AddItemsToTrainer(token.Username, item)
+	updatedItems, err := trainerdb.AddItemsToTrainer(token.Username, item)
 
 	if err != nil {
 		handleError(err, w)
 		return
 	}
 
-	toSend, err := json.Marshal(addedItems)
+	toSend, err := json.Marshal(updatedItems)
 	if err != nil {
 		handleError(err, w)
 		return
 	}
+	tokens.AddItemsToken(updatedItems, w.Header())
 	_, err = w.Write(toSend)
 
 	if err != nil {
@@ -286,17 +311,18 @@ func RemoveItemsFromTrainer(w http.ResponseWriter, r *http.Request) {
 		itemIds = append(itemIds, itemId)
 	}
 
-	removedItems, err := trainerdb.RemoveItemsFromTrainer(token.Username, itemIds)
+	updatedItems, err := trainerdb.RemoveItemsFromTrainer(token.Username, itemIds)
 	if err != nil {
 		handleError(err, w)
 		return
 	}
 
-	toSend, err := json.Marshal(removedItems)
+	toSend, err := json.Marshal(updatedItems)
 	if err != nil {
 		handleError(err, w)
 		return
 	}
+	tokens.AddItemsToken(updatedItems, w.Header())
 	_, err = w.Write(toSend)
 
 	if err != nil {
@@ -304,8 +330,6 @@ func RemoveItemsFromTrainer(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// receives a POST request with a hash of the pokemons stats
-// returns true or false depending on if they are up to date
 func HandleVerifyTrainerPokemons(w http.ResponseWriter, r *http.Request) {
 
 	log.Info("Verify Pokemons request")
@@ -360,8 +384,6 @@ func HandleVerifyTrainerPokemons(w http.ResponseWriter, r *http.Request) {
 	_, _ = w.Write(toSend)
 }
 
-// receives a POST request with a hash of the trainer stats
-// returns true or false depending on if they are up to date
 func HandleVerifyTrainerStats(w http.ResponseWriter, r *http.Request) {
 	log.Info("Verify Trainer Stats request")
 	token, err := tokens.ExtractAndVerifyAuthToken(r.Header)
@@ -400,8 +422,6 @@ func HandleVerifyTrainerStats(w http.ResponseWriter, r *http.Request) {
 
 }
 
-// receives a POST request with a hash of the trainer items
-// returns true or false depending on if they are up to date
 func HandleVerifyTrainerItems(w http.ResponseWriter, r *http.Request) {
 	log.Info("Verify items request")
 	token, err := tokens.ExtractAndVerifyAuthToken(r.Header)
@@ -533,9 +553,9 @@ func HandleUpdateRegion(w http.ResponseWriter, r *http.Request) {
 
 func handleLocationUpdates(user string, conn *websocket.Conn) {
 	defer conn.Close()
-	conn.SetReadDeadline(time.Now().Add(location.Timeout))
+	_ = conn.SetReadDeadline(time.Now().Add(location.Timeout))
 	conn.SetPongHandler(func(string) error {
-		conn.SetReadDeadline(time.Now().Add(location.Timeout))
+		_ = conn.SetReadDeadline(time.Now().Add(location.Timeout))
 		return nil
 	})
 	var pingTicker = time.NewTicker(location.PingCooldown)
@@ -549,15 +569,15 @@ func handleLocationUpdates(user string, conn *websocket.Conn) {
 				return
 			}
 		case loc := <-inChan:
-			log.Infof("User %s updated region to: (%s, lat:%f, lon:%f)", user, loc.RegionName, loc.Latitude, loc.Longitude)
 			_, err := trainerdb.UpdateUserLocation(user, loc)
 			if err != nil {
 				log.Error(err)
 				return
 			}
-			conn.SetReadDeadline(time.Now().Add(location.Timeout))
+			_ = conn.SetReadDeadline(time.Now().Add(location.Timeout))
 		case <-finish:
 			log.Warn("Stopped tracking location")
+			return
 		}
 
 	}
