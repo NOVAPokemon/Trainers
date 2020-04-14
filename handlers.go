@@ -8,9 +8,9 @@ import (
 	"github.com/NOVAPokemon/utils"
 	"github.com/NOVAPokemon/utils/api"
 	trainerdb "github.com/NOVAPokemon/utils/database/trainer"
+	"github.com/NOVAPokemon/utils/experience"
 	"github.com/NOVAPokemon/utils/items"
 	"github.com/NOVAPokemon/utils/pokemons"
-	"github.com/NOVAPokemon/utils/experience"
 	"github.com/NOVAPokemon/utils/tokens"
 	"github.com/NOVAPokemon/utils/websockets/location"
 	"github.com/gorilla/mux"
@@ -74,37 +74,33 @@ func GetTrainerByUsername(w http.ResponseWriter, r *http.Request) {
 }
 
 func AddTrainer(w http.ResponseWriter, r *http.Request) {
-
 	log.Infof("Request to add trainer")
 	var trainer = utils.Trainer{}
 	err := json.NewDecoder(r.Body).Decode(&trainer)
-
 	if err != nil {
 		handleError(decodeError, w)
 		return
 	}
 
+	trainer.Items = generateStarterItems()
+
 	log.Infof("Adding trainer: %+v", trainer)
 	_, err = trainerdb.AddTrainer(trainer)
-
 	if err != nil {
 		handleError(err, w)
 		return
 	}
 
 	toSend, err := json.Marshal(trainer)
-
 	if err != nil {
 		handleError(err, w)
 		return
 	}
 
 	_, err = w.Write(toSend)
-
 	if err != nil {
 		panic(err)
 	}
-
 }
 
 func HandleUpdateTrainerInfo(w http.ResponseWriter, r *http.Request) {
@@ -623,4 +619,40 @@ func handleError(err error, w http.ResponseWriter) {
 	default:
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
+}
+
+func generateStarterItems() map[string]items.Item {
+	pokeBallsAmount := 10
+	masterBallsAmount := 1
+	healAmount := 10
+	reviveAmount := 1
+	totalAmount := pokeBallsAmount + masterBallsAmount + healAmount + reviveAmount
+
+	starterItems := make(map[string]items.Item, totalAmount)
+
+	for i := 0; i < pokeBallsAmount; i++ {
+		toAdd := items.PokeBallItem
+		toAdd.Id = primitive.NewObjectID()
+		starterItems[toAdd.Id.Hex()] = toAdd
+	}
+
+	for i := 0; i < masterBallsAmount; i++ {
+		toAdd := items.MasterBallItem
+		toAdd.Id = primitive.NewObjectID()
+		starterItems[toAdd.Id.Hex()] = toAdd
+	}
+
+	for i := 0; i < healAmount; i++ {
+		toAdd := items.HealItem
+		toAdd.Id = primitive.NewObjectID()
+		starterItems[toAdd.Id.Hex()] = toAdd
+	}
+
+	for i := 0; i < reviveAmount; i++ {
+		toAdd := items.ReviveItem
+		toAdd.Id = primitive.NewObjectID()
+		starterItems[toAdd.Id.Hex()] = toAdd
+	}
+
+	return starterItems
 }
