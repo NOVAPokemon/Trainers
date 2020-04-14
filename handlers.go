@@ -12,20 +12,12 @@ import (
 	"github.com/NOVAPokemon/utils/items"
 	"github.com/NOVAPokemon/utils/pokemons"
 	"github.com/NOVAPokemon/utils/tokens"
-	"github.com/NOVAPokemon/utils/websockets/location"
 	"github.com/gorilla/mux"
-	"github.com/gorilla/websocket"
 	log "github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"net/http"
 	"strings"
-	"time"
 )
-
-var upgrader = websocket.Upgrader{
-	ReadBufferSize:  1024,
-	WriteBufferSize: 1024,
-}
 
 var decodeError = errors.New("an error occurred decoding the supplied resource")
 
@@ -154,20 +146,20 @@ func AddPokemonToTrainer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	pokemons, err := trainerdb.AddPokemonToTrainer(trainerUsername, pokemon)
+	pokemonsAdded, err := trainerdb.AddPokemonToTrainer(trainerUsername, pokemon)
 
 	if err != nil {
 		handleError(err, w)
 		return
 	}
 
-	toSend, err := json.Marshal(pokemons)
+	toSend, err := json.Marshal(pokemonsAdded)
 	if err != nil {
 		handleError(err, w)
 		return
 	}
 
-	tokens.AddPokemonsTokens(pokemons, w.Header())
+	tokens.AddPokemonsTokens(pokemonsAdded, w.Header())
 	_, err = w.Write(toSend)
 
 	if err != nil {
@@ -194,21 +186,21 @@ func HandleUpdatePokemon(w http.ResponseWriter, r *http.Request) {
 	}
 
 	pokemon.Level = experience.CalculateLevel(pokemon.XP)
-	pokemons, err := trainerdb.UpdateTrainerPokemon(trainerUsername, pokemonId, pokemon)
+	pokemonsUpdated, err := trainerdb.UpdateTrainerPokemon(trainerUsername, pokemonId, pokemon)
 
 	if err != nil {
 		handleError(err, w)
 		return
 	}
 
-	marshaledPokemons, err := json.Marshal(pokemons)
+	marshaledPokemons, err := json.Marshal(pokemonsUpdated)
 
 	if err != nil {
 		handleError(err, w)
 		return
 	}
 
-	tokens.AddPokemonsTokens(pokemons, w.Header())
+	tokens.AddPokemonsTokens(pokemonsUpdated, w.Header())
 	_, err = w.Write(marshaledPokemons)
 
 	if err != nil {
@@ -227,21 +219,21 @@ func RemovePokemonFromTrainer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	pokemons, err := trainerdb.RemovePokemonFromTrainer(trainerUsername, pokemonId)
+	pokemonsRemoved, err := trainerdb.RemovePokemonFromTrainer(trainerUsername, pokemonId)
 
 	if err != nil {
 		handleError(err, w)
 		return
 	}
 
-	marshaledPokemons, err := json.Marshal(pokemons)
+	marshaledPokemons, err := json.Marshal(pokemonsRemoved)
 
 	if err != nil {
 		handleError(err, w)
 		return
 	}
 
-	tokens.AddPokemonsTokens(pokemons, w.Header())
+	tokens.AddPokemonsTokens(pokemonsRemoved, w.Header())
 	_, err = w.Write(marshaledPokemons)
 
 	if err != nil {
@@ -528,70 +520,6 @@ func HandleGenerateItemsToken(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	tokens.AddItemsToken(trainer.Items, w.Header())
-}
-
-func HandleUpdateRegion(w http.ResponseWriter, r *http.Request) {
-	conn, err := upgrader.Upgrade(w, r, nil)
-
-	if err != nil {
-		log.Error(err)
-		w.WriteHeader(401)
-		return
-	}
-
-	authToken, err := tokens.ExtractAndVerifyAuthToken(r.Header)
-
-	if err != nil {
-		w.WriteHeader(401)
-		return
-	}
-	go handleLocationUpdates(authToken.Username, conn)
-}
-
-func handleLocationUpdates(user string, conn *websocket.Conn) {
-	defer conn.Close()
-	_ = conn.SetReadDeadline(time.Now().Add(location.Timeout))
-	conn.SetPongHandler(func(string) error {
-		_ = conn.SetReadDeadline(time.Now().Add(location.Timeout))
-		return nil
-	})
-	var pingTicker = time.NewTicker(location.PingCooldown)
-	inChan := make(chan utils.Location)
-	finish := make(chan *struct{})
-	go handleLocationMessages(conn, inChan, finish)
-	for {
-		select {
-		case <-pingTicker.C:
-			if err := conn.WriteMessage(websocket.PingMessage, []byte{}); err != nil {
-				return
-			}
-		case loc := <-inChan:
-			_, err := trainerdb.UpdateUserLocation(user, loc)
-			if err != nil {
-				log.Error(err)
-				return
-			}
-			_ = conn.SetReadDeadline(time.Now().Add(location.Timeout))
-		case <-finish:
-			log.Warn("Stopped tracking location")
-			return
-		}
-
-	}
-}
-
-func handleLocationMessages(conn *websocket.Conn, channel chan utils.Location, finished chan *struct{}) {
-	for {
-		loc := utils.Location{}
-		err := conn.ReadJSON(&loc)
-		if err != nil {
-			log.Printf("error: %v", err)
-			finished <- nil
-			return
-		} else {
-			channel <- loc
-		}
-	}
 }
 
 func handleError(err error, w http.ResponseWriter) {

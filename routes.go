@@ -107,16 +107,7 @@ var routes = utils.Routes{
 		Pattern:     api.RemoveItemFromBagRoute,
 		HandlerFunc: RemoveItemsFromTrainer,
 	},
-
-	// LOCATION
-
-	utils.Route{
-		Name:        UpdateRegionName,
-		Method:      GET,
-		Pattern:     api.UpdateRegionRoute,
-		HandlerFunc: HandleUpdateRegion,
-	},
-
+	
 	// TOKENS
 
 	utils.Route{
