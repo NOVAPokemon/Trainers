@@ -141,27 +141,28 @@ func AddPokemonToTrainer(w http.ResponseWriter, r *http.Request) {
 
 	err := json.NewDecoder(r.Body).Decode(&pokemon)
 
-	if err != nil {
-		handleError(err, w)
-		return
-	}
-
-	pokemonsAdded, err := trainerdb.AddPokemonToTrainer(trainerUsername, pokemon)
+	pokemonId := primitive.NewObjectID()
+	pokemon.Id = pokemonId
 
 	if err != nil {
 		handleError(err, w)
 		return
 	}
 
-	toSend, err := json.Marshal(pokemonsAdded)
+	updatedPokemons, err := trainerdb.AddPokemonToTrainer(trainerUsername, pokemon)
 	if err != nil {
 		handleError(err, w)
 		return
 	}
+	tokens.AddPokemonsTokens(updatedPokemons, w.Header())
 
-	tokens.AddPokemonsTokens(pokemonsAdded, w.Header())
+	toSend, err := json.Marshal(updatedPokemons[pokemonId.Hex()])
+	if err != nil {
+		handleError(err, w)
+		return
+	}
+	
 	_, err = w.Write(toSend)
-
 	if err != nil {
 		panic(err)
 	}
@@ -186,21 +187,21 @@ func HandleUpdatePokemon(w http.ResponseWriter, r *http.Request) {
 	}
 
 	pokemon.Level = experience.CalculateLevel(pokemon.XP)
-	pokemonsUpdated, err := trainerdb.UpdateTrainerPokemon(trainerUsername, pokemonId, pokemon)
+	updatedPokemons, err := trainerdb.UpdateTrainerPokemon(trainerUsername, pokemonId, pokemon)
 
 	if err != nil {
 		handleError(err, w)
 		return
 	}
 
-	marshaledPokemons, err := json.Marshal(pokemonsUpdated)
+	marshaledPokemons, err := json.Marshal(updatedPokemons[pokemonId.Hex()])
 
 	if err != nil {
 		handleError(err, w)
 		return
 	}
 
-	tokens.AddPokemonsTokens(pokemonsUpdated, w.Header())
+	tokens.AddPokemonsTokens(updatedPokemons, w.Header())
 	_, err = w.Write(marshaledPokemons)
 
 	if err != nil {
@@ -219,22 +220,22 @@ func RemovePokemonFromTrainer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	pokemonsRemoved, err := trainerdb.RemovePokemonFromTrainer(trainerUsername, pokemonId)
+	oldTrainerPokemons, err := trainerdb.RemovePokemonFromTrainer(trainerUsername, pokemonId)
 
 	if err != nil {
 		handleError(err, w)
 		return
 	}
 
-	marshaledPokemons, err := json.Marshal(pokemonsRemoved)
+	removedPokemon, ok := oldTrainerPokemons[pokemonId.Hex()]
 
-	if err != nil {
-		handleError(err, w)
 		return
 	}
 
-	tokens.AddPokemonsTokens(pokemonsRemoved, w.Header())
-	_, err = w.Write(marshaledPokemons)
+	delete(oldTrainerPokemons, pokemonId.Hex())
+	tokens.AddPokemonsTokens(oldTrainerPokemons, w.Header())
+	toSend, err := json.Marshal(removedPokemon)
+	_, err = w.Write(toSend)
 
 	if err != nil {
 		panic(err)
@@ -252,28 +253,32 @@ func AddItemsToTrainer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var item []items.Item
-	err = json.NewDecoder(r.Body).Decode(&item)
+	var itemsToAdd []items.Item
+	err = json.NewDecoder(r.Body).Decode(&itemsToAdd)
 	if err != nil {
 		handleError(err, w)
 		return
 	}
 
-	updatedItems, err := trainerdb.AddItemsToTrainer(token.Username, item)
+	for _, item := range itemsToAdd {
+		itemId := primitive.NewObjectID()
+		item.Id = itemId
+	}
+
+	updatedItems, err := trainerdb.AddItemsToTrainer(token.Username, itemsToAdd)
 
 	if err != nil {
 		handleError(err, w)
 		return
 	}
 
-	toSend, err := json.Marshal(updatedItems)
-	if err != nil {
-		handleError(err, w)
-		return
-	}
 	tokens.AddItemsToken(updatedItems, w.Header())
+	toSend, err := json.Marshal(itemsToAdd)
+	if err != nil {
+		handleError(err, w)
+		return
+	}
 	_, err = w.Write(toSend)
-
 	if err != nil {
 		panic(err)
 	}
@@ -292,7 +297,6 @@ func RemoveItemsFromTrainer(w http.ResponseWriter, r *http.Request) {
 	var itemIds []primitive.ObjectID
 	for _, itemIdStr := range strings.Split(vars[api.ItemIdVar], ",") {
 		itemId, err := primitive.ObjectIDFromHex(itemIdStr)
-
 		if err != nil {
 			handleError(decodeError, w)
 			return
@@ -300,18 +304,27 @@ func RemoveItemsFromTrainer(w http.ResponseWriter, r *http.Request) {
 		itemIds = append(itemIds, itemId)
 	}
 
-	updatedItems, err := trainerdb.RemoveItemsFromTrainer(token.Username, itemIds)
+	oldTrainerItems, err := trainerdb.RemoveItemsFromTrainer(token.Username, itemIds)
 	if err != nil {
 		handleError(err, w)
 		return
 	}
 
-	toSend, err := json.Marshal(updatedItems)
+	removedItems := make(map[string]items.Item, len(itemIds))
+	for i := 0; i < len(itemIds); i++ {
+		item, ok := oldTrainerItems[itemIds[i].Hex()]
+		if ok {
+			removedItems[item.Id.Hex()] = item
+			delete(oldTrainerItems, itemIds[i].Hex())
+		}
+	}
+
+	toSend, err := json.Marshal(removedItems)
 	if err != nil {
 		handleError(err, w)
 		return
 	}
-	tokens.AddItemsToken(updatedItems, w.Header())
+	tokens.AddItemsToken(oldTrainerItems, w.Header())
 	_, err = w.Write(toSend)
 
 	if err != nil {
