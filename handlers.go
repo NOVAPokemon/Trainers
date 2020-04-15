@@ -161,7 +161,7 @@ func AddPokemonToTrainer(w http.ResponseWriter, r *http.Request) {
 		handleError(err, w)
 		return
 	}
-	
+
 	_, err = w.Write(toSend)
 	if err != nil {
 		panic(err)
@@ -229,6 +229,8 @@ func RemovePokemonFromTrainer(w http.ResponseWriter, r *http.Request) {
 
 	removedPokemon, ok := oldTrainerPokemons[pokemonId.Hex()]
 
+	if !ok {
+		http.NotFound(w, r)
 		return
 	}
 
