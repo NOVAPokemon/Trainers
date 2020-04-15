@@ -262,9 +262,11 @@ func AddItemsToTrainer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	addedItems := make(map[string]items.Item, len(itemsToAdd))
 	for _, item := range itemsToAdd {
 		itemId := primitive.NewObjectID()
 		item.Id = itemId
+		addedItems[itemId.Hex()] = item
 	}
 
 	updatedItems, err := trainerdb.AddItemsToTrainer(token.Username, itemsToAdd)
@@ -275,7 +277,7 @@ func AddItemsToTrainer(w http.ResponseWriter, r *http.Request) {
 	}
 
 	tokens.AddItemsToken(updatedItems, w.Header())
-	toSend, err := json.Marshal(itemsToAdd)
+	toSend, err := json.Marshal(addedItems)
 	if err != nil {
 		handleError(err, w)
 		return
