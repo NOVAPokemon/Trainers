@@ -26,9 +26,6 @@ const RemovePokemonName = "REMOVE_POKEMON"
 const AddItemToBagName = "ADD_TO_BAG"
 const RemoveItemFromBagName = "REMOVE_FROM_BAG"
 
-//location
-const UpdateRegionName = "UPDATE_REGION"
-
 // tokens
 const VerifyTrainerStats = "VERIFY_STATS"
 const VerifyPokemon = "VERIFY_POKEMONS"
