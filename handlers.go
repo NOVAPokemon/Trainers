@@ -76,7 +76,7 @@ func AddTrainer(w http.ResponseWriter, r *http.Request) {
 
 	trainer.Items = generateStarterItems()
 
-	log.Infof("Adding trainer: %+v", trainer)
+	log.Infof("Adding trainer: %s", trainer.Username)
 	_, err = trainerdb.AddTrainer(trainer)
 	if err != nil {
 		handleError(err, w)
