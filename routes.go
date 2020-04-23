@@ -36,8 +36,8 @@ const GenerateItemsToken = "GENERATE_TRAINER_ITEMS_TOKEN"
 const GeneratePokemonsToken = "GENERATE_TRAINER_POKEMONS_TOKEN"
 
 var routes = utils.Routes{
+	api.DefaultRoute,
 	// TRAINERS
-
 	utils.Route{
 		Name:        AddTrainerName,
 		Method:      POST,
