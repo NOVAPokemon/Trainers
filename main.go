@@ -1,24 +1,16 @@
 package main
 
 import (
-	"fmt"
 	"github.com/NOVAPokemon/utils"
-	log "github.com/sirupsen/logrus"
-	"math/rand"
-	"net/http"
-	"time"
 )
 
-const host = utils.ServeHost
-const port = utils.TrainersPort
-
-var addr = fmt.Sprintf("%s:%d", host, port)
+const (
+	host = utils.ServeHost
+	port = utils.TrainersPort
+	serviceName = "TRAINERS"
+)
 
 func main() {
-	rand.Seed(time.Now().Unix())
-
-	r := utils.NewRouter(routes)
-
-	log.Infof("Starting TRAINERS server in port %d...\n", port)
-	log.Fatal(http.ListenAndServe(addr, r))
+	utils.CheckLogFlag(serviceName)
+	utils.StartServer(serviceName, host, port, routes)
 }
