@@ -543,19 +543,19 @@ func handleError(err error, w http.ResponseWriter) {
 	log.Error(err)
 
 	switch err {
-	case trainerdb.ErrTrainerNotFound:
+	case trainerdb.ErrorTrainerNotFound:
 		http.Error(w, err.Error(), http.StatusNotFound)
 
-	case trainerdb.ErrItemNotFound:
+	case trainerdb.ErrorItemNotFound:
 		http.Error(w, err.Error(), http.StatusNotFound)
 
-	case trainerdb.ErrPokemonNotFound:
+	case trainerdb.ErrorPokemonNotFound:
 		http.Error(w, err.Error(), http.StatusNotFound)
 
-	case trainerdb.ErrInvalidCoins:
+	case trainerdb.ErrorInvalidCoins:
 		http.Error(w, err.Error(), http.StatusBadRequest)
 
-	case trainerdb.ErrInvalidLevel:
+	case trainerdb.ErrorInvalidLevel:
 		http.Error(w, err.Error(), http.StatusBadRequest)
 
 	case decodeError:
