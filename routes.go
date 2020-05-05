@@ -23,8 +23,8 @@ const UpdatePokemonName = "UPDATE_POKEMON"
 const RemovePokemonName = "REMOVE_POKEMON"
 
 // trainer bag
-const AddItemToBagName = "ADD_TO_BAG"
-const RemoveItemFromBagName = "REMOVE_FROM_BAG"
+const AddItemsName = "ADD_ITEMS"
+const RemoveItemsName = "REMOVE_ITEMS"
 
 // tokens
 const VerifyTrainerStats = "VERIFY_STATS"
@@ -92,14 +92,14 @@ var routes = utils.Routes{
 	// ITEMS
 
 	utils.Route{
-		Name:        AddItemToBagName,
+		Name:        AddItemsName,
 		Method:      POST,
 		Pattern:     api.AddItemToBagRoute,
 		HandlerFunc: AddItemsToTrainer,
 	},
 
 	utils.Route{
-		Name:        RemoveItemFromBagName,
+		Name:        RemoveItemsName,
 		Method:      DELETE,
 		Pattern:     api.RemoveItemFromBagRoute,
 		HandlerFunc: RemoveItemsFromTrainer,
