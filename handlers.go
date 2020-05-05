@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"crypto/md5"
 	"encoding/json"
-	"errors"
 	"github.com/NOVAPokemon/utils"
 	"github.com/NOVAPokemon/utils/api"
 	trainerdb "github.com/NOVAPokemon/utils/database/trainer"
@@ -19,27 +18,23 @@ import (
 	"strings"
 )
 
-var decodeError = errors.New("an error occurred decoding the supplied resource")
-
 func GetAllTrainers(w http.ResponseWriter, _ *http.Request) {
 	trainers, err := trainerdb.GetAllTrainers()
 	if err != nil {
-		http.Error(w, "An error occurred fetching trainers", http.StatusInternalServerError)
+		utils.LogAndSendHTTPError(&w, wrapGetAllTrainersError(err), http.StatusInternalServerError)
+		return
 	}
 
 	toSend, err := json.Marshal(trainers)
-
 	if err != nil {
-		handleError(err, w)
+		utils.LogAndSendHTTPError(&w, wrapGetAllTrainersError(err), http.StatusInternalServerError)
 		return
 	}
 
 	_, err = w.Write(toSend)
-
 	if err != nil {
-		panic(err)
+		utils.LogAndSendHTTPError(&w, wrapGetAllTrainersError(err), http.StatusInternalServerError)
 	}
-
 }
 
 func GetTrainerByUsername(w http.ResponseWriter, r *http.Request) {
@@ -47,30 +42,30 @@ func GetTrainerByUsername(w http.ResponseWriter, r *http.Request) {
 	trainerUsername := vars[api.UsernameVar]
 
 	trainer, err := trainerdb.GetTrainerByUsername(trainerUsername)
-
 	if err != nil {
-		handleError(err, w)
+		utils.LogAndSendHTTPError(&w, wrapGetTrainerError(err), http.StatusInternalServerError)
 		return
 	}
 
 	toSend, err := json.Marshal(trainer)
 	if err != nil {
-		handleError(err, w)
+		utils.LogAndSendHTTPError(&w, wrapGetTrainerError(err), http.StatusInternalServerError)
 		return
 	}
-	_, err = w.Write(toSend)
 
+	_, err = w.Write(toSend)
 	if err != nil {
-		panic(err)
+		utils.LogAndSendHTTPError(&w, wrapGetTrainerError(err), http.StatusInternalServerError)
 	}
 }
 
 func AddTrainer(w http.ResponseWriter, r *http.Request) {
 	log.Infof("Request to add trainer")
+
 	var trainer = utils.Trainer{}
 	err := json.NewDecoder(r.Body).Decode(&trainer)
 	if err != nil {
-		handleError(decodeError, w)
+		utils.LogAndSendHTTPError(&w, wrapAddTrainerError(err), http.StatusInternalServerError)
 		return
 	}
 
@@ -79,19 +74,19 @@ func AddTrainer(w http.ResponseWriter, r *http.Request) {
 	log.Infof("Adding trainer: %s", trainer.Username)
 	_, err = trainerdb.AddTrainer(trainer)
 	if err != nil {
-		handleError(err, w)
+		utils.LogAndSendHTTPError(&w, wrapAddTrainerError(err), http.StatusInternalServerError)
 		return
 	}
 
 	toSend, err := json.Marshal(trainer)
 	if err != nil {
-		handleError(err, w)
+		utils.LogAndSendHTTPError(&w, wrapAddTrainerError(err), http.StatusInternalServerError)
 		return
 	}
 
 	_, err = w.Write(toSend)
 	if err != nil {
-		panic(err)
+		utils.LogAndSendHTTPError(&w, wrapAddTrainerError(err), http.StatusInternalServerError)
 	}
 }
 
@@ -101,35 +96,35 @@ func HandleUpdateTrainerInfo(w http.ResponseWriter, r *http.Request) {
 
 	_, err := tokens.ExtractAndVerifyAuthToken(r.Header)
 	if err != nil {
-		handleError(err, w)
+		utils.LogAndSendHTTPError(&w, wrapUpdateTrainerError(err), http.StatusUnauthorized)
 		return
 	}
 
 	var trainerStats = utils.TrainerStats{}
 	err = json.NewDecoder(r.Body).Decode(&trainerStats)
 	if err != nil {
-		handleError(err, w)
+		utils.LogAndSendHTTPError(&w, wrapUpdateTrainerError(err), http.StatusInternalServerError)
 		return
 	}
 
 	trainerStats.Level = experience.CalculateLevel(trainerStats.XP)
 	updatedTrainerStats, err := trainerdb.UpdateTrainerStats(trainerUsername, trainerStats)
 	if err != nil {
-		handleError(err, w)
+		utils.LogAndSendHTTPError(&w, wrapUpdateTrainerError(err), http.StatusInternalServerError)
 		return
 	}
 
 	toSend, err := json.Marshal(trainerStats)
 	if err != nil {
-		handleError(err, w)
+		utils.LogAndSendHTTPError(&w, wrapUpdateTrainerError(err), http.StatusInternalServerError)
 		return
 	}
 
 	tokens.AddTrainerStatsToken(*updatedTrainerStats, w.Header())
-	_, err = w.Write(toSend)
 
+	_, err = w.Write(toSend)
 	if err != nil {
-		panic(err)
+		utils.LogAndSendHTTPError(&w, wrapUpdateTrainerError(err), http.StatusInternalServerError)
 	}
 }
 
@@ -138,111 +133,108 @@ func AddPokemonToTrainer(w http.ResponseWriter, r *http.Request) {
 	trainerUsername := vars[api.UsernameVar]
 
 	var pokemon = pokemons.Pokemon{}
-
 	err := json.NewDecoder(r.Body).Decode(&pokemon)
+	if err != nil {
+		utils.LogAndSendHTTPError(&w, wrapAddPokemonToTrainerError(err), http.StatusInternalServerError)
+		return
+	}
 
 	pokemonId := primitive.NewObjectID()
 	pokemon.Id = pokemonId
 
+	updatedPokemons, err := trainerdb.AddPokemonToTrainer(trainerUsername, pokemon)
 	if err != nil {
-		handleError(err, w)
+		utils.LogAndSendHTTPError(&w, wrapAddPokemonToTrainerError(err), http.StatusInternalServerError)
 		return
 	}
 
-	updatedPokemons, err := trainerdb.AddPokemonToTrainer(trainerUsername, pokemon)
-	if err != nil {
-		handleError(err, w)
-		return
-	}
 	tokens.AddPokemonsTokens(updatedPokemons, w.Header())
 
 	toSend, err := json.Marshal(updatedPokemons[pokemonId.Hex()])
 	if err != nil {
-		handleError(err, w)
+		utils.LogAndSendHTTPError(&w, wrapAddPokemonToTrainerError(err), http.StatusInternalServerError)
 		return
 	}
 
 	_, err = w.Write(toSend)
 	if err != nil {
-		panic(err)
+		utils.LogAndSendHTTPError(&w, wrapAddPokemonToTrainerError(err), http.StatusInternalServerError)
 	}
 }
 
 func HandleUpdatePokemon(w http.ResponseWriter, r *http.Request) {
 	log.Info("Update pokemon request")
+
 	vars := mux.Vars(r)
 	trainerUsername := vars[api.UsernameVar]
-	pokemonId, err := primitive.ObjectIDFromHex(vars[api.PokemonIdVar])
 
+	pokemonId, err := primitive.ObjectIDFromHex(vars[api.PokemonIdVar])
 	if err != nil {
-		handleError(err, w)
+		utils.LogAndSendHTTPError(&w, wrapUpdatePokemonError(err), http.StatusBadRequest)
 		return
 	}
 
 	var pokemon = pokemons.Pokemon{}
 	err = json.NewDecoder(r.Body).Decode(&pokemon)
 	if err != nil {
-		handleError(err, w)
+		utils.LogAndSendHTTPError(&w, wrapUpdatePokemonError(err), http.StatusInternalServerError)
 		return
 	}
 
 	pokemon.Level = experience.CalculateLevel(pokemon.XP)
-	updatedPokemons, err := trainerdb.UpdateTrainerPokemon(trainerUsername, pokemonId, pokemon)
 
+	updatedPokemons, err := trainerdb.UpdateTrainerPokemon(trainerUsername, pokemonId, pokemon)
 	if err != nil {
-		handleError(err, w)
+		utils.LogAndSendHTTPError(&w, wrapUpdatePokemonError(err), http.StatusInternalServerError)
 		return
 	}
 
 	marshaledPokemons, err := json.Marshal(updatedPokemons[pokemonId.Hex()])
-
 	if err != nil {
-		handleError(err, w)
+		utils.LogAndSendHTTPError(&w, wrapUpdatePokemonError(err), http.StatusInternalServerError)
 		return
 	}
 
 	tokens.AddPokemonsTokens(updatedPokemons, w.Header())
-	_, err = w.Write(marshaledPokemons)
 
+	_, err = w.Write(marshaledPokemons)
 	if err != nil {
-		panic(err)
+		utils.LogAndSendHTTPError(&w, wrapUpdatePokemonError(err), http.StatusInternalServerError)
 	}
 
 }
 
 func RemovePokemonFromTrainer(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
+
 	trainerUsername := vars[api.UsernameVar]
 	pokemonId, err := primitive.ObjectIDFromHex(vars[api.PokemonIdVar])
-
 	if err != nil {
-		handleError(err, w)
+		utils.LogAndSendHTTPError(&w, wrapRemovePokemonFromTrainerError(err), http.StatusBadRequest)
 		return
 	}
 
 	oldTrainerPokemons, err := trainerdb.RemovePokemonFromTrainer(trainerUsername, pokemonId)
-
 	if err != nil {
-		handleError(err, w)
+		utils.LogAndSendHTTPError(&w, wrapRemovePokemonFromTrainerError(err), http.StatusInternalServerError)
 		return
 	}
 
 	removedPokemon, ok := oldTrainerPokemons[pokemonId.Hex()]
-
 	if !ok {
-		http.NotFound(w, r)
+		err = wrapRemovePokemonFromTrainerError(newPokemonNotFoundError(pokemonId.Hex()))
+		utils.LogAndSendHTTPError(&w, err, http.StatusNotFound)
 		return
 	}
 
 	delete(oldTrainerPokemons, pokemonId.Hex())
 	tokens.AddPokemonsTokens(oldTrainerPokemons, w.Header())
 	toSend, err := json.Marshal(removedPokemon)
+
 	_, err = w.Write(toSend)
-
 	if err != nil {
-		panic(err)
+		utils.LogAndSendHTTPError(&w, wrapRemovePokemonFromTrainerError(err), http.StatusInternalServerError)
 	}
-
 }
 
 func AddItemsToTrainer(w http.ResponseWriter, r *http.Request) {
@@ -251,14 +243,14 @@ func AddItemsToTrainer(w http.ResponseWriter, r *http.Request) {
 
 	token, err := tokens.ExtractAndVerifyAuthToken(r.Header)
 	if err != nil {
-		log.Error(err)
+		utils.LogAndSendHTTPError(&w, wrapAddItemsToTrainerError(err), http.StatusUnauthorized)
 		return
 	}
 
 	var itemsToAdd []items.Item
 	err = json.NewDecoder(r.Body).Decode(&itemsToAdd)
 	if err != nil {
-		handleError(err, w)
+		utils.LogAndSendHTTPError(&w, wrapAddItemsToTrainerError(err), http.StatusInternalServerError)
 		return
 	}
 
@@ -272,19 +264,20 @@ func AddItemsToTrainer(w http.ResponseWriter, r *http.Request) {
 	updatedItems, err := trainerdb.AddItemsToTrainer(token.Username, itemsToAdd)
 
 	if err != nil {
-		handleError(err, w)
+		utils.LogAndSendHTTPError(&w, wrapAddItemsToTrainerError(err), http.StatusInternalServerError)
 		return
 	}
 
 	tokens.AddItemsToken(updatedItems, w.Header())
 	toSend, err := json.Marshal(addedItems)
 	if err != nil {
-		handleError(err, w)
+		utils.LogAndSendHTTPError(&w, wrapAddItemsToTrainerError(err), http.StatusInternalServerError)
 		return
 	}
+
 	_, err = w.Write(toSend)
 	if err != nil {
-		panic(err)
+		utils.LogAndSendHTTPError(&w, wrapAddItemsToTrainerError(err), http.StatusInternalServerError)
 	}
 }
 
@@ -294,7 +287,7 @@ func RemoveItemsFromTrainer(w http.ResponseWriter, r *http.Request) {
 
 	token, err := tokens.ExtractAndVerifyAuthToken(r.Header)
 	if err != nil {
-		log.Error(err)
+		utils.LogAndSendHTTPError(&w, wrapRemoveItemsFromTrainerError(err), http.StatusUnauthorized)
 		return
 	}
 
@@ -302,15 +295,16 @@ func RemoveItemsFromTrainer(w http.ResponseWriter, r *http.Request) {
 	for _, itemIdStr := range strings.Split(vars[api.ItemIdVar], ",") {
 		itemId, err := primitive.ObjectIDFromHex(itemIdStr)
 		if err != nil {
-			handleError(decodeError, w)
+			utils.LogAndSendHTTPError(&w, wrapRemoveItemsFromTrainerError(err), http.StatusBadRequest)
 			return
 		}
+
 		itemIds = append(itemIds, itemId)
 	}
 
 	oldTrainerItems, err := trainerdb.RemoveItemsFromTrainer(token.Username, itemIds)
 	if err != nil {
-		handleError(err, w)
+		utils.LogAndSendHTTPError(&w, wrapRemoveItemsFromTrainerError(err), http.StatusInternalServerError)
 		return
 	}
 
@@ -325,40 +319,37 @@ func RemoveItemsFromTrainer(w http.ResponseWriter, r *http.Request) {
 
 	toSend, err := json.Marshal(removedItems)
 	if err != nil {
-		handleError(err, w)
+		utils.LogAndSendHTTPError(&w, wrapRemoveItemsFromTrainerError(err), http.StatusInternalServerError)
 		return
 	}
-	tokens.AddItemsToken(oldTrainerItems, w.Header())
-	_, err = w.Write(toSend)
 
+	tokens.AddItemsToken(oldTrainerItems, w.Header())
+
+	_, err = w.Write(toSend)
 	if err != nil {
-		panic(err)
+		utils.LogAndSendHTTPError(&w, wrapRemoveItemsFromTrainerError(err), http.StatusInternalServerError)
 	}
 }
 
 func HandleVerifyTrainerPokemons(w http.ResponseWriter, r *http.Request) {
-
 	log.Info("Verify Pokemons request")
 
 	token, err := tokens.ExtractAndVerifyAuthToken(r.Header)
-
 	if err != nil {
-		http.Error(w, "no auth token", http.StatusUnauthorized)
+		utils.LogAndSendHTTPError(&w, wrapVerifyTrainerPokemonsError(err), http.StatusUnauthorized)
 		return
 	}
 
 	var receivedHashes map[string][]byte
 	err = json.NewDecoder(r.Body).Decode(&receivedHashes)
-
 	if err != nil {
-		handleError(decodeError, w)
+		utils.LogAndSendHTTPError(&w, wrapVerifyTrainerPokemonsError(err), http.StatusInternalServerError)
 		return
 	}
 
 	trainer, err := trainerdb.GetTrainerByUsername(token.Username)
-
 	if err != nil {
-		handleError(err, w)
+		utils.LogAndSendHTTPError(&w, wrapVerifyTrainerPokemonsError(err), http.StatusInternalServerError)
 		return
 	}
 
@@ -385,30 +376,39 @@ func HandleVerifyTrainerPokemons(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	log.Info("Accepted")
-	w.WriteHeader(200)
-	toSend, _ := json.Marshal(true)
-	_, _ = w.Write(toSend)
+
+	toSend, err := json.Marshal(true)
+	if err != nil {
+		utils.LogAndSendHTTPError(&w, wrapVerifyTrainerPokemonsError(err), http.StatusInternalServerError)
+		return
+	}
+
+	_, err = w.Write(toSend)
+	if err != nil {
+		utils.LogAndSendHTTPError(&w, wrapVerifyTrainerPokemonsError(err), http.StatusInternalServerError)
+	}
 }
 
 func HandleVerifyTrainerStats(w http.ResponseWriter, r *http.Request) {
 	log.Info("Verify Trainer Stats request")
+
 	token, err := tokens.ExtractAndVerifyAuthToken(r.Header)
 	if err != nil {
-		handleError(err, w)
+		utils.LogAndSendHTTPError(&w, wrapVerifyTrainerStatsError(err), http.StatusUnauthorized)
 		return
 	}
 
 	var receivedHash []byte
 	err = json.NewDecoder(r.Body).Decode(&receivedHash)
 	if err != nil {
-		log.Error(err)
+		utils.LogAndSendHTTPError(&w, wrapVerifyTrainerStatsError(err), http.StatusInternalServerError)
 		return
 	}
 
 	trainer, err := trainerdb.GetTrainerByUsername(token.Username)
 
 	if err != nil {
-		handleError(err, w)
+		utils.LogAndSendHTTPError(&w, wrapVerifyTrainerStatsError(err), http.StatusInternalServerError)
 		return
 	}
 
@@ -416,37 +416,38 @@ func HandleVerifyTrainerStats(w http.ResponseWriter, r *http.Request) {
 	statsBytesTemp := md5.Sum(statsBytes)
 	statsHash := statsBytesTemp[:]
 
-	if bytes.Equal(statsHash, receivedHash) {
-		w.WriteHeader(200)
-		toSend, _ := json.Marshal(true)
-		_, _ = w.Write(toSend)
-	} else {
-		w.WriteHeader(200)
-		toSend, _ := json.Marshal(false)
-		_, _ = w.Write(toSend)
+	equal := bytes.Equal(statsHash, receivedHash)
+	toSend, err := json.Marshal(equal)
+	if err != nil {
+		utils.LogAndSendHTTPError(&w, wrapVerifyTrainerStatsError(err), http.StatusInternalServerError)
+		return
 	}
 
+	_, err = w.Write(toSend)
+	if err != nil {
+		utils.LogAndSendHTTPError(&w, wrapVerifyTrainerStatsError(err), http.StatusInternalServerError)
+	}
 }
 
 func HandleVerifyTrainerItems(w http.ResponseWriter, r *http.Request) {
 	log.Info("Verify items request")
+
 	token, err := tokens.ExtractAndVerifyAuthToken(r.Header)
 	if err != nil {
-		handleError(err, w)
+		utils.LogAndSendHTTPError(&w, wrapVerifyTrainerItemsError(err), http.StatusUnauthorized)
 		return
 	}
 
 	var receivedHash []byte
 	err = json.NewDecoder(r.Body).Decode(&receivedHash)
 	if err != nil {
-		log.Error(err)
+		utils.LogAndSendHTTPError(&w, wrapVerifyTrainerItemsError(err), http.StatusInternalServerError)
 		return
 	}
 
 	trainer, err := trainerdb.GetTrainerByUsername(token.Username)
-
 	if err != nil {
-		handleError(err, w)
+		utils.LogAndSendHTTPError(&w, wrapVerifyTrainerItemsError(err), http.StatusInternalServerError)
 		return
 	}
 
@@ -458,17 +459,19 @@ func HandleVerifyTrainerItems(w http.ResponseWriter, r *http.Request) {
 	log.Info(itemsHash)
 	log.Info(receivedHash)
 
-	if bytes.Equal(itemsHash, receivedHash) {
-		w.WriteHeader(200)
-		toSend, _ := json.Marshal(true)
-		_, _ = w.Write(toSend)
-		log.Info("verify items: ", true)
-	} else {
+	equal := bytes.Equal(itemsHash, receivedHash)
+	log.Info("verify items: ", equal)
 
-		w.WriteHeader(200)
-		toSend, _ := json.Marshal(false)
-		_, _ = w.Write(toSend)
-		log.Info("verify items: ", false)
+	toSend, err := json.Marshal(equal)
+	if err != nil {
+		utils.LogAndSendHTTPError(&w, wrapVerifyTrainerItemsError(err), http.StatusInternalServerError)
+		return
+	}
+
+	_, err = w.Write(toSend)
+	if err != nil {
+		utils.LogAndSendHTTPError(&w, wrapVerifyTrainerItemsError(err), http.StatusInternalServerError)
+		return
 	}
 }
 
@@ -476,16 +479,13 @@ func HandleGenerateAllTokens(w http.ResponseWriter, r *http.Request) {
 	log.Info("Generate all tokens request")
 	token, err := tokens.ExtractAndVerifyAuthToken(r.Header)
 	if err != nil {
-		log.Error(err)
-		handleError(err, w)
+		utils.LogAndSendHTTPError(&w, wrapGenerateAllTokensError(err), http.StatusUnauthorized)
 		return
 	}
 
 	trainer, err := trainerdb.GetTrainerByUsername(token.Username)
-
 	if err != nil {
-		log.Error(token.Username)
-		handleError(err, w)
+		utils.LogAndSendHTTPError(&w, wrapGenerateAllTokensError(err), http.StatusInternalServerError)
 		return
 	}
 
@@ -497,28 +497,29 @@ func HandleGenerateAllTokens(w http.ResponseWriter, r *http.Request) {
 func HandleGenerateTrainerStatsToken(w http.ResponseWriter, r *http.Request) {
 	token, err := tokens.ExtractAndVerifyAuthToken(r.Header)
 	if err != nil {
-		handleError(err, w)
+		utils.LogAndSendHTTPError(&w, wrapGenerateStatsTokenError(err), http.StatusUnauthorized)
 		return
 	}
 
 	trainer, err := trainerdb.GetTrainerByUsername(token.Username)
 	if err != nil {
-		handleError(err, w)
+		utils.LogAndSendHTTPError(&w, wrapGenerateStatsTokenError(err), http.StatusInternalServerError)
 		return
 	}
+
 	tokens.AddTrainerStatsToken(trainer.Stats, w.Header())
 }
 
 func HandleGeneratePokemonsToken(w http.ResponseWriter, r *http.Request) {
 	token, err := tokens.ExtractAndVerifyAuthToken(r.Header)
 	if err != nil {
-		handleError(err, w)
+		utils.LogAndSendHTTPError(&w, wrapGeneratePokemonsTokenError(err), http.StatusUnauthorized)
 		return
 	}
 
 	trainer, err := trainerdb.GetTrainerByUsername(token.Username)
 	if err != nil {
-		handleError(err, w)
+		utils.LogAndSendHTTPError(&w, wrapGeneratePokemonsTokenError(err), http.StatusInternalServerError)
 		return
 	}
 
@@ -528,42 +529,17 @@ func HandleGeneratePokemonsToken(w http.ResponseWriter, r *http.Request) {
 func HandleGenerateItemsToken(w http.ResponseWriter, r *http.Request) {
 	token, err := tokens.ExtractAndVerifyAuthToken(r.Header)
 	if err != nil {
+		utils.LogAndSendHTTPError(&w, wrapGenerateItemsTokenError(err), http.StatusUnauthorized)
 		return
 	}
 
 	trainer, err := trainerdb.GetTrainerByUsername(token.Username)
 	if err != nil {
-		handleError(err, w)
+		utils.LogAndSendHTTPError(&w, wrapGenerateItemsTokenError(err), http.StatusInternalServerError)
 		return
 	}
+
 	tokens.AddItemsToken(trainer.Items, w.Header())
-}
-
-func handleError(err error, w http.ResponseWriter) {
-	log.Error(err)
-
-	switch err {
-	case trainerdb.ErrorTrainerNotFound:
-		http.Error(w, err.Error(), http.StatusNotFound)
-
-	case trainerdb.ErrorItemNotFound:
-		http.Error(w, err.Error(), http.StatusNotFound)
-
-	case trainerdb.ErrorPokemonNotFound:
-		http.Error(w, err.Error(), http.StatusNotFound)
-
-	case trainerdb.ErrorInvalidCoins:
-		http.Error(w, err.Error(), http.StatusBadRequest)
-
-	case trainerdb.ErrorInvalidLevel:
-		http.Error(w, err.Error(), http.StatusBadRequest)
-
-	case decodeError:
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-
-	default:
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-	}
 }
 
 func generateStarterItems() map[string]items.Item {
