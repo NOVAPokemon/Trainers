@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/NOVAPokemon/utils"
 	"github.com/NOVAPokemon/utils/api"
+	"strings"
 )
 
 const GET = "GET"
@@ -36,8 +37,7 @@ const GenerateItemsToken = "GENERATE_TRAINER_ITEMS_TOKEN"
 const GeneratePokemonsToken = "GENERATE_TRAINER_POKEMONS_TOKEN"
 
 var routes = utils.Routes{
-	api.DefaultRoute,
-	// TRAINERS
+	api.GenStatusRoute(strings.ToLower(serviceName)),
 	utils.Route{
 		Name:        AddTrainerName,
 		Method:      POST,
