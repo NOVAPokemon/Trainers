@@ -4,6 +4,9 @@ import (
 	"bytes"
 	"crypto/md5"
 	"encoding/json"
+	"net/http"
+	"strings"
+
 	"github.com/NOVAPokemon/utils"
 	"github.com/NOVAPokemon/utils/api"
 	trainerdb "github.com/NOVAPokemon/utils/database/trainer"
@@ -14,8 +17,6 @@ import (
 	"github.com/gorilla/mux"
 	log "github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson/primitive"
-	"net/http"
-	"strings"
 )
 
 func GetAllTrainers(w http.ResponseWriter, _ *http.Request) {
