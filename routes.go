@@ -105,7 +105,7 @@ var routes = utils.Routes{
 		Pattern:     api.RemoveItemFromBagRoute,
 		HandlerFunc: RemoveItemsFromTrainer,
 	},
-	
+
 	// TOKENS
 
 	utils.Route{
