@@ -39,7 +39,7 @@ const GenerateItemsToken = "GENERATE_TRAINER_ITEMS_TOKEN"
 const GeneratePokemonsToken = "GENERATE_TRAINER_POKEMONS_TOKEN"
 
 var routes = utils.Routes{
-	api.GenStatusRoute(strings.ToLower(fmt.Sprintf("/%s", serviceName))),
+	api.GenStatusRoute(strings.ToLower(fmt.Sprintf("%s", serviceName))),
 	utils.Route{
 		Name:        AddTrainerName,
 		Method:      POST,
