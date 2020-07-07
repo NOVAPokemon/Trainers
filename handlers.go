@@ -228,7 +228,7 @@ func removePokemonFromTrainer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	deleteVerb(oldTrainerPokemons, pokemonId.Hex())
+	delete(oldTrainerPokemons, pokemonId.Hex())
 	tokens.AddPokemonsTokens(oldTrainerPokemons, w.Header())
 	toSend, err := json.Marshal(removedPokemon)
 
@@ -315,7 +315,7 @@ func removeItemsFromTrainer(w http.ResponseWriter, r *http.Request) {
 		item, ok := oldTrainerItems[itemIds[i].Hex()]
 		if ok {
 			removedItems[item.Id.Hex()] = item
-			deleteVerb(oldTrainerItems, itemIds[i].Hex())
+			delete(oldTrainerItems, itemIds[i].Hex())
 		}
 	}
 
