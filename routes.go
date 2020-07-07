@@ -8,153 +8,156 @@ import (
 	"github.com/NOVAPokemon/utils/api"
 )
 
-const GET = "GET"
-const POST = "POST"
-const DELETE = "DELETE"
-const PUT = "PUT"
+const (
+	// trainer
+	addTrainerName           = "CREATE_TRAINER"
+	getTrainersName          = "GET_TRAINERS"
+	getTrainerByUsernameName = "GET_TRAINER"
+	updateTrainerInfo        = "UPDATE_TRAINER_INFO"
 
-// trainer
-const AddTrainerName = "CREATE_TRAINER"
-const GetTrainersName = "GET_TRAINERS"
+	// trainer pokemons
+	addPokemonName    = "ADD_POKEMON"
+	updatePokemonName = "UPDATE_POKEMON"
+	removePokemonName = "REMOVE_POKEMON"
 
-const GetTrainerByUsernameName = "GET_TRAINER"
-const UpdateTrainerInfo = "UPDATE_TRAINER_INFO"
+	// trainer bag
+	addItemsName    = "ADD_ITEMS"
+	removeItemsName = "REMOVE_ITEMS"
 
-// trainer pokemons
-const AddPokemonName = "ADD_POKEMON"
-const UpdatePokemonName = "UPDATE_POKEMON"
-const RemovePokemonName = "REMOVE_POKEMON"
+	// tokens
+	verifyTrainerStats        = "VERIFY_STATS"
+	verifyPokemon             = "VERIFY_POKEMONS"
+	verifyItems               = "VERIFY_ITEMS"
+	generateAllTokens         = "GENERATE_ALL_TOKENS"
+	generateTrainerStatsToken = "GENERATE_TRAINER_STATS_TOKEN"
+	generateItemsToken        = "GENERATE_TRAINER_ITEMS_TOKEN"
+	generatePokemonsToken     = "GENERATE_TRAINER_POKEMONS_TOKEN"
+)
 
-// trainer bag
-const AddItemsName = "ADD_ITEMS"
-const RemoveItemsName = "REMOVE_ITEMS"
-
-// tokens
-const VerifyTrainerStats = "VERIFY_STATS"
-const VerifyPokemon = "VERIFY_POKEMONS"
-const VerifyItems = "VERIFY_ITEMS"
-const GenerateAllTokens = "GENERATE_ALL_TOKENS"
-const GenerateTrainerStatsToken = "GENERATE_TRAINER_STATS_TOKEN"
-const GenerateItemsToken = "GENERATE_TRAINER_ITEMS_TOKEN"
-const GeneratePokemonsToken = "GENERATE_TRAINER_POKEMONS_TOKEN"
+const (
+	get        = "GET"
+	post       = "POST"
+	deleteVerb = "DELETE"
+	put        = "PUT"
+)
 
 var routes = utils.Routes{
 	api.GenStatusRoute(strings.ToLower(fmt.Sprintf("%s", serviceName))),
 	utils.Route{
-		Name:        AddTrainerName,
-		Method:      POST,
+		Name:        addTrainerName,
+		Method:      post,
 		Pattern:     api.AddTrainerPath,
-		HandlerFunc: AddTrainer,
+		HandlerFunc: addTrainer,
 	},
 
 	utils.Route{
-		Name:        UpdateTrainerInfo,
-		Method:      PUT,
+		Name:        updateTrainerInfo,
+		Method:      put,
 		Pattern:     api.UpdateTrainerStatsRoute,
-		HandlerFunc: HandleUpdateTrainerInfo,
+		HandlerFunc: handleUpdateTrainerInfo,
 	},
 
 	utils.Route{
-		Name:        GetTrainersName,
-		Method:      GET,
+		Name:        getTrainersName,
+		Method:      get,
 		Pattern:     api.GetTrainersPath,
-		HandlerFunc: GetAllTrainers,
+		HandlerFunc: getAllTrainers,
 	},
 
 	utils.Route{
-		Name:        GetTrainerByUsernameName,
-		Method:      GET,
+		Name:        getTrainerByUsernameName,
+		Method:      get,
 		Pattern:     api.GetTrainerByUsernameRoute,
-		HandlerFunc: GetTrainerByUsername,
+		HandlerFunc: getTrainerByUsername,
 	},
 
 	// POKEMONS
 
 	utils.Route{
-		Name:        AddPokemonName,
-		Method:      POST,
+		Name:        addPokemonName,
+		Method:      post,
 		Pattern:     api.AddPokemonRoute,
-		HandlerFunc: AddPokemonToTrainer,
+		HandlerFunc: addPokemonToTrainer,
 	},
 
 	utils.Route{
-		Name:        UpdatePokemonName,
-		Method:      PUT,
+		Name:        updatePokemonName,
+		Method:      put,
 		Pattern:     api.UpdatePokemonRoute,
-		HandlerFunc: HandleUpdatePokemon,
+		HandlerFunc: handleUpdatePokemon,
 	},
 
 	utils.Route{
-		Name:        RemovePokemonName,
-		Method:      DELETE,
+		Name:        removePokemonName,
+		Method:      deleteVerb,
 		Pattern:     api.RemovePokemonRoute,
-		HandlerFunc: RemovePokemonFromTrainer,
+		HandlerFunc: removePokemonFromTrainer,
 	},
 
 	// ITEMS
 
 	utils.Route{
-		Name:        AddItemsName,
-		Method:      POST,
+		Name:        addItemsName,
+		Method:      post,
 		Pattern:     api.AddItemToBagRoute,
-		HandlerFunc: AddItemsToTrainer,
+		HandlerFunc: addItemsToTrainer,
 	},
 
 	utils.Route{
-		Name:        RemoveItemsName,
-		Method:      DELETE,
+		Name:        removeItemsName,
+		Method:      deleteVerb,
 		Pattern:     api.RemoveItemFromBagRoute,
-		HandlerFunc: RemoveItemsFromTrainer,
+		HandlerFunc: removeItemsFromTrainer,
 	},
 
 	// TOKENS
 
 	utils.Route{
-		Name:        GenerateAllTokens,
-		Method:      GET,
+		Name:        generateAllTokens,
+		Method:      get,
 		Pattern:     api.GenerateAllTokensRoute,
-		HandlerFunc: HandleGenerateAllTokens,
+		HandlerFunc: handleGenerateAllTokens,
 	},
 
 	utils.Route{
-		Name:        GenerateTrainerStatsToken,
-		Method:      GET,
+		Name:        generateTrainerStatsToken,
+		Method:      get,
 		Pattern:     api.GenerateTrainerStatsTokenRoute,
-		HandlerFunc: HandleGenerateTrainerStatsToken,
+		HandlerFunc: handleGenerateTrainerStatsToken,
 	},
 
 	utils.Route{
-		Name:        GeneratePokemonsToken,
-		Method:      GET,
+		Name:        generatePokemonsToken,
+		Method:      get,
 		Pattern:     api.GeneratePokemonsTokenRoute,
-		HandlerFunc: HandleGeneratePokemonsToken,
+		HandlerFunc: handleGeneratePokemonsToken,
 	},
 
 	utils.Route{
-		Name:        GenerateItemsToken,
-		Method:      GET,
+		Name:        generateItemsToken,
+		Method:      get,
 		Pattern:     api.GenerateItemsTokenRoute,
-		HandlerFunc: HandleGenerateItemsToken,
+		HandlerFunc: handleGenerateItemsToken,
 	},
 
 	utils.Route{
-		Name:        VerifyItems,
-		Method:      POST,
+		Name:        verifyItems,
+		Method:      post,
 		Pattern:     api.VerifyItemsRoute,
-		HandlerFunc: HandleVerifyTrainerItems,
+		HandlerFunc: handleVerifyTrainerItems,
 	},
 
 	utils.Route{
-		Name:        VerifyTrainerStats,
-		Method:      POST,
+		Name:        verifyTrainerStats,
+		Method:      post,
 		Pattern:     api.VerifyTrainerStatsRoute,
-		HandlerFunc: HandleVerifyTrainerStats,
+		HandlerFunc: handleVerifyTrainerStats,
 	},
 
 	utils.Route{
-		Name:        VerifyPokemon,
-		Method:      POST,
+		Name:        verifyPokemon,
+		Method:      post,
 		Pattern:     api.VerifyPokemonRoute,
-		HandlerFunc: HandleVerifyTrainerPokemons,
+		HandlerFunc: handleVerifyTrainerPokemons,
 	},
 }

@@ -13,67 +13,67 @@ const (
 
 // Handler wrappers
 func wrapGetAllTrainersError(err error) error {
-	return errors.Wrap(err, fmt.Sprintf(utils.ErrorInHandlerFormat, GetTrainersName))
+	return errors.Wrap(err, fmt.Sprintf(utils.ErrorInHandlerFormat, getTrainersName))
 }
 
 func wrapGetTrainerError(err error) error {
-	return errors.Wrap(err, fmt.Sprintf(utils.ErrorInHandlerFormat, GetTrainerByUsernameName))
+	return errors.Wrap(err, fmt.Sprintf(utils.ErrorInHandlerFormat, getTrainerByUsernameName))
 }
 
 func wrapAddTrainerError(err error) error {
-	return errors.Wrap(err, fmt.Sprintf(utils.ErrorInHandlerFormat, AddTrainerName))
+	return errors.Wrap(err, fmt.Sprintf(utils.ErrorInHandlerFormat, addTrainerName))
 }
 
 func wrapUpdateTrainerError(err error) error {
-	return errors.Wrap(err, fmt.Sprintf(utils.ErrorInHandlerFormat, UpdateTrainerInfo))
+	return errors.Wrap(err, fmt.Sprintf(utils.ErrorInHandlerFormat, updateTrainerInfo))
 }
 
 func wrapAddPokemonToTrainerError(err error) error {
-	return errors.Wrap(err, fmt.Sprintf(utils.ErrorInHandlerFormat, AddPokemonName))
+	return errors.Wrap(err, fmt.Sprintf(utils.ErrorInHandlerFormat, addPokemonName))
 }
 
 func wrapUpdatePokemonError(err error) error {
-	return errors.Wrap(err, fmt.Sprintf(utils.ErrorInHandlerFormat, UpdatePokemonName))
+	return errors.Wrap(err, fmt.Sprintf(utils.ErrorInHandlerFormat, updatePokemonName))
 }
 
 func wrapRemovePokemonFromTrainerError(err error) error {
-	return errors.Wrap(err, fmt.Sprintf(utils.ErrorInHandlerFormat, RemovePokemonName))
+	return errors.Wrap(err, fmt.Sprintf(utils.ErrorInHandlerFormat, removePokemonName))
 }
 
 func wrapAddItemsToTrainerError(err error) error {
-	return errors.Wrap(err, fmt.Sprintf(utils.ErrorInHandlerFormat, AddItemsName))
+	return errors.Wrap(err, fmt.Sprintf(utils.ErrorInHandlerFormat, addItemsName))
 }
 
 func wrapRemoveItemsFromTrainerError(err error) error {
-	return errors.Wrap(err, fmt.Sprintf(utils.ErrorInHandlerFormat, RemoveItemsName))
+	return errors.Wrap(err, fmt.Sprintf(utils.ErrorInHandlerFormat, removeItemsName))
 }
 
 func wrapVerifyTrainerPokemonsError(err error) error {
-	return errors.Wrap(err, fmt.Sprintf(utils.ErrorInHandlerFormat, VerifyPokemon))
+	return errors.Wrap(err, fmt.Sprintf(utils.ErrorInHandlerFormat, verifyPokemon))
 }
 
 func wrapVerifyTrainerStatsError(err error) error {
-	return errors.Wrap(err, fmt.Sprintf(utils.ErrorInHandlerFormat, VerifyTrainerStats))
+	return errors.Wrap(err, fmt.Sprintf(utils.ErrorInHandlerFormat, verifyTrainerStats))
 }
 
 func wrapVerifyTrainerItemsError(err error) error {
-	return errors.Wrap(err, fmt.Sprintf(utils.ErrorInHandlerFormat, VerifyItems))
+	return errors.Wrap(err, fmt.Sprintf(utils.ErrorInHandlerFormat, verifyItems))
 }
 
 func wrapGenerateAllTokensError(err error) error {
-	return errors.Wrap(err, fmt.Sprintf(utils.ErrorInHandlerFormat, GenerateAllTokens))
+	return errors.Wrap(err, fmt.Sprintf(utils.ErrorInHandlerFormat, generateAllTokens))
 }
 
 func wrapGenerateStatsTokenError(err error) error {
-	return errors.Wrap(err, fmt.Sprintf(utils.ErrorInHandlerFormat, GenerateTrainerStatsToken))
+	return errors.Wrap(err, fmt.Sprintf(utils.ErrorInHandlerFormat, generateTrainerStatsToken))
 }
 
 func wrapGeneratePokemonsTokenError(err error) error {
-	return errors.Wrap(err, fmt.Sprintf(utils.ErrorInHandlerFormat, GeneratePokemonsToken))
+	return errors.Wrap(err, fmt.Sprintf(utils.ErrorInHandlerFormat, generatePokemonsToken))
 }
 
 func wrapGenerateItemsTokenError(err error) error {
-	return errors.Wrap(err, fmt.Sprintf(utils.ErrorInHandlerFormat, GenerateItemsToken))
+	return errors.Wrap(err, fmt.Sprintf(utils.ErrorInHandlerFormat, generateItemsToken))
 }
 
 // Error builders
