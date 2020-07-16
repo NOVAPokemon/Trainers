@@ -10,7 +10,6 @@ import (
 
 	"github.com/NOVAPokemon/utils"
 	"github.com/NOVAPokemon/utils/api"
-	"github.com/NOVAPokemon/utils/comms_manager"
 	trainerdb "github.com/NOVAPokemon/utils/database/trainer"
 	"github.com/NOVAPokemon/utils/experience"
 	"github.com/NOVAPokemon/utils/items"
@@ -23,7 +22,7 @@ import (
 
 var (
 	serverName   string
-	commsManager comms_manager.CommunicationManager
+	commsManager utils.CommunicationManager
 )
 
 func init() {
