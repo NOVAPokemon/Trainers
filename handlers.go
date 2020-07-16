@@ -15,6 +15,7 @@ import (
 	"github.com/NOVAPokemon/utils/items"
 	"github.com/NOVAPokemon/utils/pokemons"
 	"github.com/NOVAPokemon/utils/tokens"
+	"github.com/NOVAPokemon/utils/websockets"
 	"github.com/gorilla/mux"
 	log "github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -22,7 +23,7 @@ import (
 
 var (
 	serverName   string
-	commsManager utils.CommunicationManager
+	commsManager websockets.CommunicationManager
 )
 
 func init() {
