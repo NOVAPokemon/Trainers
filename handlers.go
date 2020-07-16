@@ -5,10 +5,12 @@ import (
 	"crypto/md5"
 	"encoding/json"
 	"net/http"
+	"os"
 	"strings"
 
 	"github.com/NOVAPokemon/utils"
 	"github.com/NOVAPokemon/utils/api"
+	"github.com/NOVAPokemon/utils/comms_manager"
 	trainerdb "github.com/NOVAPokemon/utils/database/trainer"
 	"github.com/NOVAPokemon/utils/experience"
 	"github.com/NOVAPokemon/utils/items"
@@ -18,6 +20,19 @@ import (
 	log "github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
+
+var (
+	serverName   string
+	commsManager comms_manager.CommunicationManager
+)
+
+func init() {
+	if aux, exists := os.LookupEnv(utils.HostnameEnvVar); exists {
+		serverName = aux
+	} else {
+		log.Fatal("Could not load server name")
+	}
+}
 
 func getAllTrainers(w http.ResponseWriter, _ *http.Request) {
 	trainers, err := trainerdb.GetAllTrainers()
