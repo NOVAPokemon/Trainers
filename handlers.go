@@ -276,8 +276,8 @@ func addItemsToTrainer(w http.ResponseWriter, r *http.Request) {
 	}
 
 	updatedItems, err := trainerdb.AddItemsToTrainer(token.Username, itemsToAdd)
-
 	if err != nil {
+		log.Info("token username: ", token.Username)
 		utils.LogAndSendHTTPError(&w, wrapAddItemsToTrainerError(err), http.StatusInternalServerError)
 		return
 	}
