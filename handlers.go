@@ -154,7 +154,7 @@ func addPokemonToTrainer(w http.ResponseWriter, r *http.Request) {
 	}
 
 	pokemonId := primitive.NewObjectID()
-	pokemon.Id = pokemonId
+	pokemon.Id = pokemonId.Hex()
 
 	updatedPokemons, err := trainerdb.AddPokemonToTrainer(trainerUsername, pokemon)
 	if err != nil {
@@ -228,7 +228,7 @@ func removePokemonFromTrainer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	oldTrainerPokemons, err := trainerdb.RemovePokemonFromTrainer(trainerUsername, pokemonId)
+	oldTrainerPokemons, err := trainerdb.RemovePokemonFromTrainer(trainerUsername, pokemonId.Hex())
 	if err != nil {
 		utils.LogAndSendHTTPError(&w, wrapRemovePokemonFromTrainerError(err), http.StatusInternalServerError)
 		return
@@ -271,7 +271,7 @@ func addItemsToTrainer(w http.ResponseWriter, r *http.Request) {
 	addedItems := make(map[string]items.Item, len(itemsToAdd))
 	for _, item := range itemsToAdd {
 		itemId := primitive.NewObjectID()
-		item.Id = itemId
+		item.Id = itemId.Hex()
 		addedItems[itemId.Hex()] = item
 	}
 
@@ -327,7 +327,7 @@ func removeItemsFromTrainer(w http.ResponseWriter, r *http.Request) {
 	for i := 0; i < len(itemIds); i++ {
 		item, ok := oldTrainerItems[itemIds[i].Hex()]
 		if ok {
-			removedItems[item.Id.Hex()] = item
+			removedItems[item.Id] = item
 			delete(oldTrainerItems, itemIds[i].Hex())
 		}
 	}
@@ -552,26 +552,26 @@ func generateStarterItems() map[string]items.Item {
 
 	for i := 0; i < pokeBallsAmount; i++ {
 		toAdd := items.PokeBallItem
-		toAdd.Id = primitive.NewObjectID()
-		starterItems[toAdd.Id.Hex()] = toAdd
+		toAdd.Id = primitive.NewObjectID().Hex()
+		starterItems[toAdd.Id] = toAdd
 	}
 
 	for i := 0; i < masterBallsAmount; i++ {
 		toAdd := items.MasterBallItem
-		toAdd.Id = primitive.NewObjectID()
-		starterItems[toAdd.Id.Hex()] = toAdd
+		toAdd.Id = primitive.NewObjectID().Hex()
+		starterItems[toAdd.Id] = toAdd
 	}
 
 	for i := 0; i < healAmount; i++ {
 		toAdd := items.HealItem
-		toAdd.Id = primitive.NewObjectID()
-		starterItems[toAdd.Id.Hex()] = toAdd
+		toAdd.Id = primitive.NewObjectID().Hex()
+		starterItems[toAdd.Id] = toAdd
 	}
 
 	for i := 0; i < reviveAmount; i++ {
 		toAdd := items.ReviveItem
-		toAdd.Id = primitive.NewObjectID()
-		starterItems[toAdd.Id.Hex()] = toAdd
+		toAdd.Id = primitive.NewObjectID().Hex()
+		starterItems[toAdd.Id] = toAdd
 	}
 
 	return starterItems
