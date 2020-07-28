@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"crypto/md5"
+	"encoding/base64"
 	"encoding/json"
 	"net/http"
 	"os"
@@ -24,6 +25,7 @@ import (
 var (
 	serverName   string
 	commsManager websockets.CommunicationManager
+	b64Encoding  = base64.Encoding{}
 )
 
 func init() {
@@ -357,7 +359,7 @@ func handleVerifyTrainerPokemons(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var receivedHashes map[string][]byte
+	var receivedHashes map[string]string
 	err = json.NewDecoder(r.Body).Decode(&receivedHashes)
 	if err != nil {
 		utils.LogAndSendHTTPError(&w, wrapVerifyTrainerPokemonsError(err), http.StatusInternalServerError)
@@ -384,7 +386,13 @@ func handleVerifyTrainerPokemons(w http.ResponseWriter, r *http.Request) {
 		pokemonBytesTemp := md5.Sum(pokemonBytes)
 		pokemonHash := pokemonBytesTemp[:]
 
-		if !bytes.Equal(pokemonHash, currHash) {
+		var currHashBytes []byte
+		currHashBytes, err = b64Encoding.DecodeString(currHash)
+		if err != nil {
+			utils.LogAndSendHTTPError(&w, wrapVerifyTrainerPokemonsError(err), http.StatusBadRequest)
+		}
+
+		if !bytes.Equal(pokemonHash, currHashBytes) {
 			log.Info("Denied")
 			w.WriteHeader(200)
 			toSend, _ := json.Marshal(false)
@@ -415,7 +423,7 @@ func handleVerifyTrainerStats(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var receivedHash []byte
+	var receivedHash string
 	err = json.NewDecoder(r.Body).Decode(&receivedHash)
 	if err != nil {
 		utils.LogAndSendHTTPError(&w, wrapVerifyTrainerStatsError(err), http.StatusInternalServerError)
@@ -433,7 +441,13 @@ func handleVerifyTrainerStats(w http.ResponseWriter, r *http.Request) {
 	statsBytesTemp := md5.Sum(statsBytes)
 	statsHash := statsBytesTemp[:]
 
-	equal := bytes.Equal(statsHash, receivedHash)
+	var receivedHashBytes []byte
+	receivedHashBytes, err = b64Encoding.DecodeString(receivedHash)
+	if err != nil {
+		utils.LogAndSendHTTPError(&w, wrapVerifyTrainerPokemonsError(err), http.StatusBadRequest)
+	}
+
+	equal := bytes.Equal(statsHash, receivedHashBytes)
 	toSend, err := json.Marshal(equal)
 	if err != nil {
 		utils.LogAndSendHTTPError(&w, wrapVerifyTrainerStatsError(err), http.StatusInternalServerError)
@@ -455,7 +469,7 @@ func handleVerifyTrainerItems(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var receivedHash []byte
+	var receivedHash string
 	err = json.NewDecoder(r.Body).Decode(&receivedHash)
 	if err != nil {
 		utils.LogAndSendHTTPError(&w, wrapVerifyTrainerItemsError(err), http.StatusInternalServerError)
@@ -476,7 +490,13 @@ func handleVerifyTrainerItems(w http.ResponseWriter, r *http.Request) {
 	log.Info(itemsHash)
 	log.Info(receivedHash)
 
-	equal := bytes.Equal(itemsHash, receivedHash)
+	var receivedHashBytes []byte
+	receivedHashBytes, err = b64Encoding.DecodeString(receivedHash)
+	if err != nil {
+		utils.LogAndSendHTTPError(&w, wrapVerifyTrainerPokemonsError(err), http.StatusBadRequest)
+	}
+
+	equal := bytes.Equal(itemsHash, receivedHashBytes)
 	log.Info("verify items: ", equal)
 
 	toSend, err := json.Marshal(equal)
