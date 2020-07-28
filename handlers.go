@@ -269,10 +269,12 @@ func addItemsToTrainer(w http.ResponseWriter, r *http.Request) {
 	}
 
 	addedItems := make(map[string]items.Item, len(itemsToAdd))
-	for _, item := range itemsToAdd {
+	for i, item := range itemsToAdd {
 		itemId := primitive.NewObjectID()
-		item.Id = itemId.Hex()
-		addedItems[itemId.Hex()] = item
+		idHex := itemId.Hex()
+		item.Id = idHex
+		itemsToAdd[i].Id = idHex
+		addedItems[idHex] = item
 	}
 
 	updatedItems, err := trainerdb.AddItemsToTrainer(token.Username, itemsToAdd)
