@@ -378,7 +378,7 @@ func handleVerifyTrainerPokemons(w http.ResponseWriter, r *http.Request) {
 			_, _ = w.Write(toSend)
 		}
 
-		if currHash == tokens.GenerateHash(pokemon) {
+		if !(currHash == tokens.GenerateHash(pokemon)) {
 			log.Info("Denied")
 			w.WriteHeader(200)
 			toSend, _ := json.Marshal(false)
