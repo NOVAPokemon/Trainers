@@ -2,10 +2,10 @@ package main
 
 import (
 	"encoding/json"
-	http "github.com/bruno-anjos/archimedesHTTPClient"
-	originalHttp "net/http"
 	"os"
 	"strings"
+
+	http "github.com/bruno-anjos/archimedesHTTPClient"
 
 	"github.com/NOVAPokemon/utils"
 	"github.com/NOVAPokemon/utils/api"
@@ -33,7 +33,7 @@ func init() {
 	}
 }
 
-func getAllTrainers(w originalHttp.ResponseWriter, _ *originalHttp.Request) {
+func getAllTrainers(w http.ResponseWriter, _ *http.Request) {
 	trainers, err := trainerdb.GetAllTrainers()
 	if err != nil {
 		utils.LogAndSendHTTPError(&w, wrapGetAllTrainersError(err), http.StatusInternalServerError)
@@ -52,7 +52,7 @@ func getAllTrainers(w originalHttp.ResponseWriter, _ *originalHttp.Request) {
 	}
 }
 
-func getTrainerByUsername(w originalHttp.ResponseWriter, r *originalHttp.Request) {
+func getTrainerByUsername(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	trainerUsername := vars[api.UsernameVar]
 
@@ -74,7 +74,7 @@ func getTrainerByUsername(w originalHttp.ResponseWriter, r *originalHttp.Request
 	}
 }
 
-func addTrainer(w originalHttp.ResponseWriter, r *originalHttp.Request) {
+func addTrainer(w http.ResponseWriter, r *http.Request) {
 	log.Infof("Request to add trainer")
 
 	var trainer = utils.Trainer{}
@@ -105,7 +105,7 @@ func addTrainer(w originalHttp.ResponseWriter, r *originalHttp.Request) {
 	}
 }
 
-func handleUpdateTrainerInfo(w originalHttp.ResponseWriter, r *originalHttp.Request) {
+func handleUpdateTrainerInfo(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	trainerUsername := vars[api.UsernameVar]
 
@@ -143,7 +143,7 @@ func handleUpdateTrainerInfo(w originalHttp.ResponseWriter, r *originalHttp.Requ
 	}
 }
 
-func addPokemonToTrainer(w originalHttp.ResponseWriter, r *originalHttp.Request) {
+func addPokemonToTrainer(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	trainerUsername := vars[api.UsernameVar]
 
@@ -177,7 +177,7 @@ func addPokemonToTrainer(w originalHttp.ResponseWriter, r *originalHttp.Request)
 	}
 }
 
-func handleUpdatePokemon(w originalHttp.ResponseWriter, r *originalHttp.Request) {
+func handleUpdatePokemon(w http.ResponseWriter, r *http.Request) {
 	log.Info("Update pokemon request")
 
 	vars := mux.Vars(r)
@@ -219,7 +219,7 @@ func handleUpdatePokemon(w originalHttp.ResponseWriter, r *originalHttp.Request)
 
 }
 
-func removePokemonFromTrainer(w originalHttp.ResponseWriter, r *originalHttp.Request) {
+func removePokemonFromTrainer(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
 	trainerUsername := vars[api.UsernameVar]
@@ -252,7 +252,7 @@ func removePokemonFromTrainer(w originalHttp.ResponseWriter, r *originalHttp.Req
 	}
 }
 
-func addItemsToTrainer(w originalHttp.ResponseWriter, r *originalHttp.Request) {
+func addItemsToTrainer(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	_ = vars[api.UsernameVar]
 
@@ -298,7 +298,7 @@ func addItemsToTrainer(w originalHttp.ResponseWriter, r *originalHttp.Request) {
 	}
 }
 
-func removeItemsFromTrainer(w originalHttp.ResponseWriter, r *originalHttp.Request) {
+func removeItemsFromTrainer(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	_ = vars[api.UsernameVar]
 
@@ -349,7 +349,7 @@ func removeItemsFromTrainer(w originalHttp.ResponseWriter, r *originalHttp.Reque
 	}
 }
 
-func handleVerifyTrainerPokemons(w originalHttp.ResponseWriter, r *originalHttp.Request) {
+func handleVerifyTrainerPokemons(w http.ResponseWriter, r *http.Request) {
 	log.Info("Verify Pokemons request")
 
 	token, err := tokens.ExtractAndVerifyAuthToken(r.Header)
@@ -403,7 +403,7 @@ func handleVerifyTrainerPokemons(w originalHttp.ResponseWriter, r *originalHttp.
 	}
 }
 
-func handleVerifyTrainerStats(w originalHttp.ResponseWriter, r *originalHttp.Request) {
+func handleVerifyTrainerStats(w http.ResponseWriter, r *http.Request) {
 	log.Info("Verify Trainer Stats request")
 
 	token, err := tokens.ExtractAndVerifyAuthToken(r.Header)
@@ -439,7 +439,7 @@ func handleVerifyTrainerStats(w originalHttp.ResponseWriter, r *originalHttp.Req
 	}
 }
 
-func handleVerifyTrainerItems(w originalHttp.ResponseWriter, r *originalHttp.Request) {
+func handleVerifyTrainerItems(w http.ResponseWriter, r *http.Request) {
 	log.Info("Verify items request")
 
 	token, err := tokens.ExtractAndVerifyAuthToken(r.Header)
@@ -477,7 +477,7 @@ func handleVerifyTrainerItems(w originalHttp.ResponseWriter, r *originalHttp.Req
 	}
 }
 
-func handleGenerateAllTokens(w originalHttp.ResponseWriter, r *originalHttp.Request) {
+func handleGenerateAllTokens(w http.ResponseWriter, r *http.Request) {
 	log.Info("Generate all tokens request")
 	token, err := tokens.ExtractAndVerifyAuthToken(r.Header)
 	if err != nil {
@@ -496,7 +496,7 @@ func handleGenerateAllTokens(w originalHttp.ResponseWriter, r *originalHttp.Requ
 	tokens.AddTrainerStatsToken(trainer.Stats, w.Header())
 }
 
-func handleGenerateTrainerStatsToken(w originalHttp.ResponseWriter, r *originalHttp.Request) {
+func handleGenerateTrainerStatsToken(w http.ResponseWriter, r *http.Request) {
 	token, err := tokens.ExtractAndVerifyAuthToken(r.Header)
 	if err != nil {
 		utils.LogAndSendHTTPError(&w, wrapGenerateStatsTokenError(err), http.StatusUnauthorized)
@@ -512,7 +512,7 @@ func handleGenerateTrainerStatsToken(w originalHttp.ResponseWriter, r *originalH
 	tokens.AddTrainerStatsToken(trainer.Stats, w.Header())
 }
 
-func handleGeneratePokemonsToken(w originalHttp.ResponseWriter, r *originalHttp.Request) {
+func handleGeneratePokemonsToken(w http.ResponseWriter, r *http.Request) {
 	token, err := tokens.ExtractAndVerifyAuthToken(r.Header)
 	if err != nil {
 		utils.LogAndSendHTTPError(&w, wrapGeneratePokemonsTokenError(err), http.StatusUnauthorized)
@@ -528,7 +528,7 @@ func handleGeneratePokemonsToken(w originalHttp.ResponseWriter, r *originalHttp.
 	tokens.AddPokemonsTokens(trainer.Pokemons, w.Header())
 }
 
-func handleGenerateItemsToken(w originalHttp.ResponseWriter, r *originalHttp.Request) {
+func handleGenerateItemsToken(w http.ResponseWriter, r *http.Request) {
 	token, err := tokens.ExtractAndVerifyAuthToken(r.Header)
 	if err != nil {
 		utils.LogAndSendHTTPError(&w, wrapGenerateItemsTokenError(err), http.StatusUnauthorized)

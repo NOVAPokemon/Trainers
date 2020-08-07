@@ -3,7 +3,7 @@ module github.com/NOVAPokemon/trainers
 go 1.13
 
 require (
-	github.com/NOVAPokemon/utils v0.0.64
+	github.com/NOVAPokemon/utils v0.0.62
 	github.com/bruno-anjos/archimedesHTTPClient v0.0.2
 	github.com/gorilla/mux v1.7.4
 	github.com/pkg/errors v0.9.1
@@ -12,7 +12,7 @@ require (
 )
 
 replace (
-	github.com/NOVAPokemon/utils v0.0.64 => ../utils
+	github.com/NOVAPokemon/utils v0.0.62 => ../utils
 	github.com/bruno-anjos/archimedes v0.0.2 => ./../../bruno-anjos/archimedes
 	github.com/bruno-anjos/archimedesHTTPClient v0.0.2 => ./../../bruno-anjos/archimedesHTTPClient
 )
