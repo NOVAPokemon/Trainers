@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/NOVAPokemon/utils"
+	trainerdb "github.com/NOVAPokemon/utils/database/trainer"
 )
 
 const (
@@ -24,5 +25,6 @@ func main() {
 		commsManager = utils.CreateDefaultDelayedManager(locationTag, false)
 	}
 
+	trainerdb.InitTrainersDBClient(*flags.ArchimedesEnabled)
 	utils.StartServer(serviceName, host, port, routes, commsManager)
 }
