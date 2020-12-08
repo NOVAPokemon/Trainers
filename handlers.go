@@ -479,6 +479,9 @@ func handleVerifyTrainerItems(w http.ResponseWriter, r *http.Request) {
 
 func handleGenerateAllTokens(w http.ResponseWriter, r *http.Request) {
 	log.Info("Generate all tokens request")
+
+	log.Infof("auth token: %s", r.Header.Get(tokens.AuthTokenHeaderName))
+
 	token, err := tokens.ExtractAndVerifyAuthToken(r.Header)
 	if err != nil {
 		utils.LogAndSendHTTPError(&w, wrapGenerateAllTokensError(err), http.StatusUnauthorized)
