@@ -45,6 +45,8 @@ func getAllTrainers(w http.ResponseWriter, _ *http.Request) {
 		return
 	}
 
+	log.Info("getting all trainers")
+
 	_, err = w.Write(toSend)
 	if err != nil {
 		utils.LogAndSendHTTPError(&w, wrapGetAllTrainersError(err), http.StatusInternalServerError)
@@ -76,7 +78,7 @@ func getTrainerByUsername(w http.ResponseWriter, r *http.Request) {
 func addTrainer(w http.ResponseWriter, r *http.Request) {
 	log.Infof("Request to add trainer")
 
-	var trainer = utils.Trainer{}
+	trainer := utils.Trainer{}
 	err := json.NewDecoder(r.Body).Decode(&trainer)
 	if err != nil {
 		utils.LogAndSendHTTPError(&w, wrapAddTrainerError(err), http.StatusInternalServerError)
@@ -114,7 +116,7 @@ func handleUpdateTrainerInfo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var trainerStats = utils.TrainerStats{}
+	trainerStats := utils.TrainerStats{}
 	err = json.NewDecoder(r.Body).Decode(&trainerStats)
 	if err != nil {
 		utils.LogAndSendHTTPError(&w, wrapUpdateTrainerError(err), http.StatusInternalServerError)
@@ -146,7 +148,7 @@ func addPokemonToTrainer(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	trainerUsername := vars[api.UsernameVar]
 
-	var pokemon = pokemons.Pokemon{}
+	pokemon := pokemons.Pokemon{}
 	err := json.NewDecoder(r.Body).Decode(&pokemon)
 	if err != nil {
 		utils.LogAndSendHTTPError(&w, wrapAddPokemonToTrainerError(err), http.StatusInternalServerError)
@@ -188,7 +190,7 @@ func handleUpdatePokemon(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var pokemon = pokemons.Pokemon{}
+	pokemon := pokemons.Pokemon{}
 	err = json.NewDecoder(r.Body).Decode(&pokemon)
 	if err != nil {
 		utils.LogAndSendHTTPError(&w, wrapUpdatePokemonError(err), http.StatusInternalServerError)
@@ -215,7 +217,6 @@ func handleUpdatePokemon(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		utils.LogAndSendHTTPError(&w, wrapUpdatePokemonError(err), http.StatusInternalServerError)
 	}
-
 }
 
 func removePokemonFromTrainer(w http.ResponseWriter, r *http.Request) {
@@ -419,7 +420,6 @@ func handleVerifyTrainerStats(w http.ResponseWriter, r *http.Request) {
 	}
 
 	trainer, err := trainerdb.GetTrainerByUsername(token.Username)
-
 	if err != nil {
 		utils.LogAndSendHTTPError(&w, wrapVerifyTrainerStatsError(err), http.StatusInternalServerError)
 		return
